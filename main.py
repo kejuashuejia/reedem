@@ -55,74 +55,80 @@ def main():
                 if family_code == "99":
                     continue
                 use_decoy = input("Use decoy package? (y/n): ").lower() == 'y'
-                pause_on_success = input("Pause on each successful purchase? (y/n): ").lower() == 'y'
+                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 purchase_by_family(family_code, use_decoy, pause_on_success)
             elif choice == "3":
                 delay = int(input("Enter delay in seconds: "))
+                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
                     if not purchase_loop(
                         family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
                         order=1,
                         use_decoy=True,
                         delay=delay,
-                        pause_on_success=True
+                        pause_on_success=pause_on_success
                     ):
                         break
             elif choice == "4":
                 delay = int(input("Enter delay in seconds: "))
+                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
                     if not purchase_loop(
                         family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
                         order=3,
                         use_decoy=True,
                         delay=delay,
-                        pause_on_success=True
+                        pause_on_success=pause_on_success
                     ):
                         break
             elif choice == "5":
                 delay = int(input("Enter delay in seconds: "))
+                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
                     if not purchase_loop(
                         family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
                         order=1,
                         use_decoy=True,
                         delay=delay,
-                        pause_on_success=True
+                        pause_on_success=pause_on_success
                     ):
                         break
             elif choice == "6":
                 delay = int(input("Enter delay in seconds: "))
+                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
                     if not purchase_loop(
                         family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
                         order=52,
                         use_decoy=True,
                         delay=delay,
-                        pause_on_success=True
+                        pause_on_success=pause_on_success
                     ):
                         break
             elif choice == "7":
                 delay = int(input("Enter delay in seconds: "))
+                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
                     if not purchase_loop(
                         family_code='4889cc43-55c9-47dd-8f7e-d3ac9fae6022',
                         order=5,
                         use_decoy=True,
                         delay=delay,
-                        pause_on_success=True
+                        pause_on_success=pause_on_success
                     ):
                         break
             elif choice == "8":
                 family_code = input("Enter family code: ")
                 order = int(input("Enter order number: "))
                 delay = int(input("Enter delay in seconds: "))
+                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
                     if not purchase_loop(
                         family_code=family_code,
                         order=order,
                         use_decoy=True,
                         delay=delay,
-                        pause_on_success=True
+                        pause_on_success=pause_on_success
                     ):
                         break
             elif choice == "99":
