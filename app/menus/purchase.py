@@ -1,3 +1,4 @@
+import time
 import requests
 from app.client.engsel import get_family, get_package_details
 from app.menus.util import pause
@@ -194,6 +195,7 @@ def purchase_loop(
     family_code: str,
     order: int,
     use_decoy: bool,
+    delay: int = 0,
 ):
     api_key = AuthInstance.api_key
     tokens: dict = AuthInstance.get_active_tokens() or {}
@@ -334,6 +336,9 @@ def purchase_loop(
             print("Purchase successful!")
 
     except Exception as e:
-        print(f"Exception occurred while creating order: {e}")
+        print(f'Exception occurred while creating order: {e}')
     
     print("-------------------------------------------------------")
+    for i in range(delay, 0, -1):
+        print(f"\033[93mDelay to Continue : {i} (detik)\033[0m", end="\r")
+        time.sleep(1)

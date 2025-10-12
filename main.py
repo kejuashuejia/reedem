@@ -19,18 +19,14 @@ def show_main_menu():
     print("-------------------------------------------------------")
     print("Menu:")
     print("1. Login/Ganti akun")
-    print("2. Lihat Paket Saya")
-    print("3. Beli Paket 🔥 HOT 🔥")
-    print("4. Beli Paket 🔥 HOT-2 🔥")
-    print("5. Beli Paket Berdasarkan Family Code")
-    print("6. Riwayat Transaksi")
-    print("7. [Test] Purchase all packages in family code")
-    print("8. Bebas Puas TIKTOK ADD 42GB (no.1)")
-    print("9. Bebas Puas TIKTOK ADD 39GB (no.3)")
-    print("10. Kuota Pelanggan Baru 10GB + 30H (Accumulate) (no.1)")
-    print("11. Bonus Kuota Utama 15GB (no.52)")
-    print("12. Bot Akrab (no.92)")
-    print("00. Bookmark Paket")
+    print("2. [Test] Purchase all packages in family code")
+    print("-------------------------------------------------------")
+    print("List Bot Auto Looping:")
+    print("3. Bebas Puas TIKTOK ADD 42GB (no.1)")
+    print("4. Bebas Puas TIKTOK ADD 39GB (no.3)")
+    print("5. Kuota Pelanggan Baru 10GB + 30H (Accumulate) (no.1)")
+    print("6. Bonus Kuota Utama 15GB (no.52)")
+    print("7. Bot Akrab (no.92)")
     print("99. Tutup aplikasi")
     print("-------------------------------------------------------")
 
@@ -53,77 +49,60 @@ def main():
                     print("No user selected or failed to load user.")
                 continue
             elif choice == "2":
-                fetch_my_packages()
-                continue
-            elif choice == "3":
-                show_hot_menu()
-            elif choice == "4":
-                show_hot_menu2()
-            elif choice == "5":
-                family_code = input("Enter family code (or '99' to cancel): ")
-                if family_code == "99":
-                    continue
-                get_packages_by_family(family_code)
-            elif choice == "6":
-                show_transaction_history(AuthInstance.api_key, active_user["tokens"])
-            elif choice == "7":
                 family_code = input("Enter family code (or '99' to cancel): ")
                 if family_code == "99":
                     continue
                 use_decoy = input("Use decoy package? (y/n): ").lower() == 'y'
                 pause_on_success = input("Pause on each successful purchase? (y/n): ").lower() == 'y'
                 purchase_by_family(family_code, use_decoy, pause_on_success)
-            elif choice == "8":
+            elif choice == "3":
+                delay = int(input("Enter delay in seconds: "))
                 while True:
                     purchase_loop(
                         family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
                         order=1,
-                        use_decoy=True
+                        use_decoy=True,
+                        delay=delay
                     )
-            elif choice == "9":
+            elif choice == "4":
+                delay = int(input("Enter delay in seconds: "))
                 while True:
                     purchase_loop(
                         family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
                         order=3,
-                        use_decoy=True
+                        use_decoy=True,
+                        delay=delay
                     )
-            elif choice == "10":
+            elif choice == "5":
+                delay = int(input("Enter delay in seconds: "))
                 while True:
                     purchase_loop(
                         family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
                         order=1,
-                        use_decoy=True
+                        use_decoy=True,
+                        delay=delay
                     )
-            elif choice == "11":
+            elif choice == "6":
+                delay = int(input("Enter delay in seconds: "))
                 while True:
                     purchase_loop(
                         family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
                         order=52,
-                        use_decoy=True
+                        use_decoy=True,
+                        delay=delay
                     )
-            elif choice == "12":
+            elif choice == "7":
+                delay = int(input("Enter delay in seconds: "))
                 while True:
                     purchase_loop(
                         family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
                         order=92,
-                        use_decoy=True
+                        use_decoy=True,
+                        delay=delay
                     )
-            elif choice == "00":
-                show_bookmark_menu()
             elif choice == "99":
                 print("Exiting the application.")
                 sys.exit(0)
-            elif choice == "t":
-                res = get_package(
-                    AuthInstance.api_key,
-                    active_user["tokens"],
-                    ""
-                )
-                print(json.dumps(res, indent=2))
-                input("Press Enter to continue...")
-                pass
-            elif choice == "s":
-                enter_sentry_mode()
             else:
                 print("Invalid choice. Please try again.")
                 pause()
