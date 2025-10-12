@@ -196,6 +196,7 @@ def purchase_loop(
     order: int,
     use_decoy: bool,
     delay: int = 0,
+    pause_on_success: bool = False,
 ):
     api_key = AuthInstance.api_key
     tokens: dict = AuthInstance.get_active_tokens() or {}
@@ -332,8 +333,16 @@ def purchase_loop(
                 )
                 if res and res.get("status", "") == "SUCCESS":
                     print("Purchase successful!")
+                    if pause_on_success:
+                        choice = input("Lanjut Dor? (Y/N): ")
+                        if choice.lower() == 'n':
+                            return False
         else:
             print("Purchase successful!")
+            if pause_on_success:
+                choice = input("Lanjut Dor? (Y/N): ")
+                if choice.lower() == 'n':
+                    return False
 
     except Exception as e:
         print(f'Exception occurred while creating order: {e}')
@@ -342,3 +351,4 @@ def purchase_loop(
     for i in range(delay, 0, -1):
         print(f"\033[93mDelay to Continue : {i} (detik)\033[0m", end="\r")
         time.sleep(1)
+    return True
