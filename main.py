@@ -21,11 +21,13 @@ def show_main_menu(active_user):
     print("Menu:")
     print("1. Login/Ganti akun")
     print("2. [Test] Purchase all packages in family code")
+    print("-------------------------------------------------------")
+    print("List Bot Auto Looping:")
     print("3. Bebas Puas TIKTOK ADD 42GB (no.1)")
     print("4. Bebas Puas TIKTOK ADD 39GB (no.3)")
     print("5. Kuota Pelanggan Baru 10GB + 30H (Accumulate) (no.1)")
     print("6. Bonus Kuota Utama 15GB (no.52)")
-    print("7. Bot Akrab (no.92)")
+    print("7. Akrab 2kb (no.5)")
     print("8. Mode Custom (family code dan nomer order)")
     print("99. Tutup aplikasi")
     print("-------------------------------------------------------")
@@ -103,8 +105,8 @@ def main():
                 delay = int(input("Enter delay in seconds: "))
                 while True:
                     if not purchase_loop(
-                        family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
-                        order=92,
+                        family_code='4889cc43-55c9-47dd-8f7e-d3ac9fae6022',
+                        order=5,
                         use_decoy=True,
                         delay=delay,
                         pause_on_success=True
