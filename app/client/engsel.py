@@ -458,12 +458,14 @@ def get_package_details(
     variant_code: str,
     option_order: int,
     is_enterprise: bool | None = None,
-    migration_type: str | None = None
+    migration_type: str | None = None,
+    family_data: dict | None = None,
 ) -> dict | None:
-    family_data = get_family(api_key, tokens, family_code, is_enterprise, migration_type)
-    if not family_data:
-        print(f"Gagal mengambil data family untuk {family_code}.")
-        return None
+    if family_data is None:
+        family_data = get_family(api_key, tokens, family_code, is_enterprise, migration_type)
+        if not family_data:
+            print(f"Gagal mengambil data family untuk {family_code}.")
+            return None
     
     package_options = []
     
@@ -483,7 +485,7 @@ def get_package_details(
         print("Gagal menemukan opsi paket yang sesuai.")
         return None
         
-    package_details_data = get_package(api_key, tokens, option_code)
+    package_details_data = get_package(api_key, tokens, option_code, family_code, variant_code)
     if not package_details_data:
         print("Gagal mengambil detail paket.")
         return None

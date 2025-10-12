@@ -13,7 +13,7 @@ from app.menus.account import show_account_menu
 from app.menus.package import fetch_my_packages, get_packages_by_family
 from app.menus.hot import show_hot_menu, show_hot_menu2
 from app.service.sentry import enter_sentry_mode
-from app.menus.purchase import purchase_by_family
+from app.menus.purchase import purchase_by_family, purchase_loop
 
 def show_main_menu(profile):
     clear_screen()
@@ -35,6 +35,11 @@ def show_main_menu(profile):
     print("5. Beli Paket Berdasarkan Family Code")
     print("6. Riwayat Transaksi")
     print("7. [Test] Purchase all packages in family code")
+    print("8. Bebas Puas (no.1)")
+    print("9. Bebas Puas (no.2)")
+    print("10. Bot Akrab (no.69)")
+    print("11. Bot Akrab (no.75)")
+    print("12. Bot Akrab (no.92)")
     print("00. Bookmark Paket")
     print("99. Tutup aplikasi")
     print("-------------------------------------------------------")
@@ -101,7 +106,43 @@ def main():
                 if family_code == "99":
                     continue
                 use_decoy = input("Use decoy package? (y/n): ").lower() == 'y'
-                purchase_by_family(family_code, use_decoy)
+                pause_on_success = input("Pause on each successful purchase? (y/n): ").lower() == 'y'
+                purchase_by_family(family_code, use_decoy, pause_on_success)
+            elif choice == "8":
+                while True:
+                    purchase_loop(
+                        family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
+                        order=1,
+                        use_decoy=True
+                    )
+            elif choice == "9":
+                while True:
+                    purchase_loop(
+                        family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
+                        order=6,
+                        use_decoy=True
+                    )
+            elif choice == "10":
+                while True:
+                    purchase_loop(
+                        family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
+                        order=69,
+                        use_decoy=True
+                    )
+            elif choice == "11":
+                while True:
+                    purchase_loop(
+                        family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
+                        order=75,
+                        use_decoy=True
+                    )
+            elif choice == "12":
+                while True:
+                    purchase_loop(
+                        family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
+                        order=92,
+                        use_decoy=True
+                    )
             elif choice == "00":
                 show_bookmark_menu()
             elif choice == "99":
