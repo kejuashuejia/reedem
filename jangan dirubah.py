@@ -36,7 +36,7 @@ def show_main_menu(profile):
     print("6. Riwayat Transaksi")
     print("7. [Test] Purchase all packages in family code")
     print("8. Bebas Puas TIKTOK ADD 42GB (no.1)")
-    print("9. Bebas Puas TIKTOK ADD 39GB (no.3)")
+    print("9. Bebas Puas TIKTOK ADD 40GB (no.3)")
     print("10. Kuota Pelanggan Baru 10GB + 30H (Accumulate) (no.1)")
     print("11. Bonus Kuota Utama 15GB (no.52)")
     print("12. Bot Akrab (no.92)")

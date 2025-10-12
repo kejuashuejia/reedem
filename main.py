@@ -100,7 +100,7 @@ def main():
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
                     if not purchase_loop(
-                        family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
+                        family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
                         order=52,
                         use_decoy=True,
                         delay=delay,
