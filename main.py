@@ -24,11 +24,11 @@ def show_main_menu(active_user):
     print("2. [Test] Purchase all packages in family code")
     print("-------------------------------------------------------")
     print("List Bot Auto Looping:")
-    print("3. Bebas Puas TIKTOK ADD 42GB (no.1)")
-    print("4. Bebas Puas TIKTOK ADD 39GB (no.3)")
-    print("5. Kuota Pelanggan Baru 10GB + 30H (Accumulate) (no.1)")
-    print("6. Bonus Kuota Utama 15GB (no.52)")
-    print("7. Bonus Kuota Utama 45GB (no.64)")
+    print("3. Bonus Kuota Malam 72GB")
+    print("4. Bebas Puas TIKTOK/YT ADD-ON 39GB")
+    print("5. Kuota Pelanggan Baru 10GB + 30H (Accumulate)")
+    print("6. Bonus Kuota Utama 15GB")
+    print("7. Bonus Kuota Utama 45GB")
     print("8. Mode Custom (family code dan nomer order)")
     print("9. Ganti API Key")
     print("99. Tutup aplikasi")
@@ -65,7 +65,7 @@ def main():
                 while True:
                     if not purchase_loop(
                         family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
-                        order=1,
+                        order=26,
                         use_decoy=True,
                         delay=delay,
                         pause_on_success=pause_on_success
