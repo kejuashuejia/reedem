@@ -13,6 +13,7 @@ from app.menus.package import fetch_my_packages, get_packages_by_family
 from app.menus.hot import show_hot_menu, show_hot_menu2
 from app.service.sentry import enter_sentry_mode
 from app.menus.purchase import purchase_by_family, purchase_loop
+from app.util import save_api_key
 
 def show_main_menu(active_user):
     clear_screen()
@@ -29,6 +30,7 @@ def show_main_menu(active_user):
     print("6. Bonus Kuota Utama 15GB (no.52)")
     print("7. Akrab 2kb (no.5)")
     print("8. Mode Custom (family code dan nomer order)")
+    print("9. Ganti API Key")
     print("99. Tutup aplikasi")
     print("-------------------------------------------------------")
 
@@ -131,6 +133,15 @@ def main():
                         pause_on_success=pause_on_success
                     ):
                         break
+            elif choice == "9":
+                new_api_key = input("Masukkan API key baru: ").strip()
+                if new_api_key:
+                    save_api_key(new_api_key)
+                    AuthInstance.api_key = new_api_key
+                    print("API key berhasil diperbarui.")
+                else:
+                    print("API key tidak boleh kosong.")
+                pause()
             elif choice == "99":
                 print("Exiting the application.")
                 sys.exit(0)
