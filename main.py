@@ -28,7 +28,7 @@ def show_main_menu(active_user):
     print("4. Bebas Puas TIKTOK ADD 39GB (no.3)")
     print("5. Kuota Pelanggan Baru 10GB + 30H (Accumulate) (no.1)")
     print("6. Bonus Kuota Utama 15GB (no.52)")
-    print("7. Akrab 2kb (no.5)")
+    print("7. Bonus Kuota Utama 45GB (no.64)")
     print("8. Mode Custom (family code dan nomer order)")
     print("9. Ganti API Key")
     print("99. Tutup aplikasi")
@@ -112,8 +112,8 @@ def main():
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
                     if not purchase_loop(
-                        family_code='4889cc43-55c9-47dd-8f7e-d3ac9fae6022',
-                        order=5,
+                        family_code='5412b964-474e-42d3-9c86-f5692da627db',
+                        order=64,
                         use_decoy=True,
                         delay=delay,
                         pause_on_success=pause_on_success
