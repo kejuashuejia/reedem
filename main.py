@@ -30,6 +30,7 @@ def show_main_menu(active_user):
     print("6. Bonus Kuota Utama 15GB")
     print("7. Bonus Kuota Utama 45GB")
     print("8. Mode Custom (family code dan nomer order)")
+    print("-------------------------------------------------------")
     print("9. Ganti API Key")
     print("99. Tutup aplikasi")
     print("-------------------------------------------------------")
