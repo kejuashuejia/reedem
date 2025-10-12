@@ -5,6 +5,7 @@ load_dotenv()
 import sys
 from app.menus.util import clear_screen, pause
 from app.client.engsel import *
+from app.client.engsel2 import get_tiering_info
 from app.menus.payment import show_transaction_history
 from app.service.auth import AuthInstance
 from app.menus.bookmark import show_bookmark_menu
@@ -14,8 +15,17 @@ from app.menus.hot import show_hot_menu, show_hot_menu2
 from app.service.sentry import enter_sentry_mode
 from app.menus.purchase import purchase_by_family, purchase_loop
 
-def show_main_menu():
+def show_main_menu(profile):
     clear_screen()
+    expired_at_dt = datetime.fromtimestamp(profile["balance_expired_at"]).strftime("%Y-%m-%d %H:%M:%S")
+    
+    print("-------------------------------------------------------")
+    print("Informasi Akun")
+    print(f"Nomor: {profile['number']}")
+    print(f"Type: {profile['subscription_type']}({profile['subscriber_id']})")
+    print(f"Pulsa: Rp {profile['balance']}")
+    print(f"{profile['point_info']}")
+    print(f"Masa aktif: {expired_at_dt}")
     print("-------------------------------------------------------")
     print("Menu:")
     print("1. Login/Ganti akun")
@@ -42,7 +52,32 @@ def main():
 
         # Logged in
         if active_user is not None:
-            show_main_menu()
+            balance = get_balance(AuthInstance.api_key, active_user["tokens"]["id_token"])
+            balance_remaining = balance.get("remaining")
+            balance_expired_at = balance.get("expired_at")
+            
+            profile_data = get_profile(AuthInstance.api_key, active_user["tokens"]["access_token"], active_user["tokens"]["id_token"])
+            sub_id = profile_data["profile"]["subscriber_id"]
+            sub_type = profile_data["profile"]["subscription_type"]
+            
+            point_info = "Points: N/A | Tier: N/A"
+            
+            if sub_type == "PREPAID":
+                tiering_data = get_tiering_info(AuthInstance.api_key, active_user["tokens"])
+                tier = tiering_data.get("tier", 0)
+                current_point = tiering_data.get("current_point", 0)
+                point_info = f"Points: {current_point} | Tier: {tier}"
+            
+            profile = {
+                "number": active_user["number"],
+                "subscriber_id": sub_id,
+                "subscription_type": sub_type,
+                "balance": balance_remaining,
+                "balance_expired_at": balance_expired_at,
+                "point_info": point_info
+            }
+
+            show_main_menu(profile)
 
             choice = input("Pilih menu: ")
             if choice == "1":
