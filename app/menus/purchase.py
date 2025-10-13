@@ -26,6 +26,24 @@ def purchase_by_family(
             return None
         
         decoy_data = response.json()
+
+        decoy_package_detail = get_package_details(
+            api_key,
+            tokens,
+            decoy_data["family_code"],
+            decoy_data["variant_code"],
+            decoy_data["order"],
+            decoy_data["is_enterprise"],
+            decoy_data["migration_type"],
+        )
+
+        balance_treshold = decoy_package_detail["package_option"]["price"]
+        print(f"Pastikan sisa balance KURANG DARI Rp{balance_treshold}!!!")
+        balance_answer = input("Apakah anda yakin ingin melanjutkan pembelian? (y/n): ")
+        if balance_answer.lower() != "y":
+            print("Pembelian dibatalkan oleh user.")
+            pause()
+            return None
     
     family_data = get_family(api_key, tokens, family_code)
     if not family_data:
@@ -263,5 +281,7 @@ def purchase_loop(
     except Exception as e:
         print(f"Transaksi Gagal")
     
-    time.sleep(delay)
+    for i in range(delay, 0, -1):
+        print(f"Delay to Continue : {i} (detik)", end="\r")
+        time.sleep(1)
     return True
