@@ -14,6 +14,7 @@ from app.menus.hot import show_hot_menu, show_hot_menu2
 from app.service.sentry import enter_sentry_mode
 from app.menus.purchase import purchase_by_family, purchase_loop
 from app.util import save_api_key
+from app.menus.family_bookmark import show_family_bookmark_menu
 
 def show_main_menu(active_user):
     clear_screen()
@@ -31,7 +32,8 @@ def show_main_menu(active_user):
     print("7. Bonus Kuota Utama 45GB")
     print("8. Mode Custom (family code dan nomer order)")
     print("-------------------------------------------------------")
-    print("9. Ganti API Key")
+    print("9. Bookmark Family Code")
+    print("10. Ganti API Key")
     print("99. Tutup aplikasi")
     print("-------------------------------------------------------")
 
@@ -135,6 +137,8 @@ def main():
                     ):
                         break
             elif choice == "9":
+                show_family_bookmark_menu()
+            elif choice == "10":
                 new_api_key = input("Masukkan API key baru: ").strip()
                 if new_api_key:
                     save_api_key(new_api_key)
