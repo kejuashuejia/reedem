@@ -5,6 +5,36 @@ from html.parser import HTMLParser
 import os
 import re
 import textwrap
+import sys
+
+def log_progress(process_number, process_name, percentage, success=None):
+    """
+    Displays a progress bar with status in a simplified format.
+
+    Args:
+        process_number (int): The sequential number of the process.
+        process_name (str): The name of the process.
+        percentage (int): The completion percentage (0-100).
+        success (bool, optional): True for success (✓), False for failure (X), None for in-progress.
+    """
+    hashes = '#' * (percentage // 10)
+
+    status_symbol = ""
+    if success is True:
+        status_symbol = " ✓"
+    elif success is False:
+        status_symbol = " X"
+
+    # Pad with spaces to overwrite previous, longer lines
+    output_line = f"{process_number}. {process_name} {hashes}{status_symbol}"
+
+    # Use \r to stay on the same line for updates
+    sys.stdout.write(f"\r{output_line.ljust(80)}")
+    sys.stdout.flush()
+
+    if success is not None:
+        sys.stdout.write('\n')
+        sys.stdout.flush()
 
 def clear_screen():
     print("Clearing screen...")
