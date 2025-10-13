@@ -20,7 +20,6 @@ def settlement_balance(
 ):
     # Sanity check
     if overwrite_amount == -1 and not ask_overwrite:
-        print("Either ask_overwrite must be True or overwrite_amount must be set.")
         return None
 
     token_confirmation = items[token_confirmation_idx]["token_confirmation"]
@@ -47,7 +46,7 @@ def settlement_balance(
                 amount_int = int(amount_str)
             except ValueError:
                 print("Invalid overwrite input, using original price.")
-                # return None
+
     intercept_page(api_key, tokens, items[0]["item_code"], False)
     
     # Get payment methods
@@ -61,11 +60,8 @@ def settlement_balance(
         "token_confirmation": token_confirmation
     }
     
-    print("Getting payment methods...")
     payment_res = send_api_request(api_key, payment_path, payment_payload, tokens["id_token"], "POST")
     if payment_res["status"] != "SUCCESS":
-        print("Failed to fetch payment methods.")
-        print(f"Error: {payment_res}")
         return payment_res
     
     token_payment = payment_res["data"]["token_payment"]
@@ -177,19 +173,13 @@ def settlement_balance(
     }
     
     url = f"{BASE_API_URL}/{path}"
-    print("Sending settlement request...")
     resp = requests.post(url, headers=headers, data=json.dumps(body), timeout=30)
     
     try:
         decrypted_body = decrypt_xdata(api_key, json.loads(resp.text))
         if decrypted_body["status"] != "SUCCESS":
-            print("Failed to initiate settlement.")
-            print(f"Error: {decrypted_body}")
             return decrypted_body
-        
-        print(f"Purchase result:\n{json.dumps(decrypted_body, indent=2)}")
         
         return decrypted_body
     except Exception as e:
-        print("[decrypt err]", e)
         return resp.text
