@@ -1,7 +1,7 @@
 import time
 import requests
 from app.client.engsel import get_family, get_package_details
-from app.menus.util import pause
+from app.menus.util import pause, log_progress
 from app.service.auth import AuthInstance
 from app.type_dict import PaymentItem
 from app.client.balance import settlement_balance
@@ -16,13 +16,17 @@ def purchase_by_family(
     api_key = AuthInstance.api_key
     tokens: dict = AuthInstance.get_active_tokens() or {}
     
+    process_number = 1
+    log_progress(process_number, "payment process", 0)
+
     if use_decoy:
+        log_progress(process_number, "payment process", 10)
         # Balance; Decoy XCP
         url = "https://me.mashu.lol/pg-decoy-xcp.json"
         
         response = requests.get(url, timeout=30)
         if response.status_code != 200:
-            print("Gagal mengambil data decoy package.")
+            log_progress(process_number, "payment process", 100, success=False)
             pause()
             return None
         
@@ -71,12 +75,12 @@ def purchase_by_family(
             option_price = option["price"]
             
             purchase_count += 1
-            print(f"Pruchase {purchase_count} of {packages_count}...")
-            print(f"Trying to buy: {variant_name} - {option_order}. {option_name} - {option['price']}")
-            
+            log_progress(process_number, "payment process", 0)
+
             payment_items = []
             
             try:
+                log_progress(process_number, "payment process", 10)
                 if use_decoy:
                     decoy_package_detail = get_package_details(
                         api_key,
@@ -88,6 +92,7 @@ def purchase_by_family(
                         decoy_data["migration_type"],
                     )
                 
+                log_progress(process_number, "payment process", 30)
                 target_package_detail = get_package_details(
                     api_key,
                     tokens,
@@ -98,9 +103,10 @@ def purchase_by_family(
                     None,
                     family_data=family_data,
                 )
+                log_progress(process_number, "payment process", 50)
             except Exception as e:
-                print(f"Exception occurred while fetching package details: {e}")
-                print(f"Failed to get package details for {variant_name} - {option_name}. Skipping.")
+                log_progress(process_number, "payment process", 100, success=False)
+                process_number += 1
                 continue
             
             payment_items.append(
@@ -133,6 +139,7 @@ def purchase_by_family(
                 overwrite_amount += decoy_package_detail["package_option"]["price"]
 
             try:
+                log_progress(process_number, "payment process", 70)
                 res = settlement_balance(
                     api_key,
                     tokens,
@@ -141,6 +148,7 @@ def purchase_by_family(
                     False,
                     overwrite_amount,
                 )
+                log_progress(process_number, "payment process", 90)
                 
                 if res and res.get("status", "") != "SUCCESS":
                     error_msg = res.get("message", "Unknown error")
@@ -148,7 +156,6 @@ def purchase_by_family(
                         error_msg_arr = error_msg.split("=")
                         valid_amount = int(error_msg_arr[1].strip())
                         
-                        print(f"Adjusted total amount to: {valid_amount}")
                         res = settlement_balance(
                             api_key,
                             tokens,
@@ -161,26 +168,26 @@ def purchase_by_family(
                             successful_purchases.append(
                                 f"{variant_name}|{option_order}. {option_name} - {option_price}"
                             )
-                            
+                            log_progress(process_number, "payment process", 100, success=True)
                             if pause_on_success:
-                                print("Purchase successful!")
                                 pause()
-                            else:
-                                print("Purchase successful!")
+                        else:
+                            log_progress(process_number, "payment process", 100, success=False)
+                    else:
+                        log_progress(process_number, "payment process", 100, success=False)
                 else:
                     successful_purchases.append(
                         f"{variant_name}|{option_order}. {option_name} - {option_price}"
                     )
+                    log_progress(process_number, "payment process", 100, success=True)
                     if pause_on_success:
-                        print("Purchase successful!")
                         pause()
-                    else:
-                        print("Purchase successful!")
 
             except Exception as e:
-                print(f"Exception occurred while creating order: {e}")
+                log_progress(process_number, "payment process", 100, success=False)
                 res = None
-            print("-------------------------------------------------------")
+
+            process_number += 1
     
     print(f"Total successful purchases for family {family_name}: {len(successful_purchases)}")
     if len(successful_purchases) > 0:
@@ -200,6 +207,7 @@ def purchase_loop(
 ):
     api_key = AuthInstance.api_key
     tokens: dict = AuthInstance.get_active_tokens() or {}
+    process_number = 1
 
     # Find the package variant and option from family data
     family_data = get_family(api_key, tokens, family_code)
@@ -253,6 +261,7 @@ def purchase_loop(
     tokens = AuthInstance.get_active_tokens()
     
     try:
+        log_progress(process_number, "payment process", 20)
         target_package_detail = get_package_details(
             api_key,
             tokens,
@@ -263,9 +272,9 @@ def purchase_loop(
             None,
             family_data=family_data,
         )
+        log_progress(process_number, "payment process", 40)
     except Exception as e:
-        print(f"Exception occurred while fetching package details: {e}")
-        print(f"Failed to get package details. Aborting.")
+        log_progress(process_number, "payment process", 100, success=False)
         return
 
     payment_items = []
@@ -281,6 +290,7 @@ def purchase_loop(
     )
 
     if use_decoy:
+        log_progress(process_number, "payment process", 50)
         decoy_package_detail = get_package_details(
             api_key,
             tokens,
@@ -306,6 +316,7 @@ def purchase_loop(
         overwrite_amount += decoy_package_detail["package_option"]["price"]
 
     try:
+        log_progress(process_number, "payment process", 70)
         res = settlement_balance(
             api_key,
             tokens,
@@ -314,15 +325,14 @@ def purchase_loop(
             False,
             overwrite_amount,
         )
+        log_progress(process_number, "payment process", 90)
         
         if res and res.get("status", "") != "SUCCESS":
             error_msg = res.get("message", "Unknown error")
-            print(f"Purchase failed: {error_msg}")
             if "Bizz-err.Amount.Total" in error_msg:
                 error_msg_arr = error_msg.split("=")
                 valid_amount = int(error_msg_arr[1].strip())
                 
-                print(f"Adjusted total amount to: {valid_amount}")
                 res = settlement_balance(
                     api_key,
                     tokens,
@@ -332,22 +342,24 @@ def purchase_loop(
                     valid_amount,
                 )
                 if res and res.get("status", "") == "SUCCESS":
-                    print("Purchase successful!")
+                    log_progress(process_number, "payment process", 100, success=True)
                     if pause_on_success:
                         choice = input("Lanjut Dor? (Y/N): ")
                         if choice.lower() == 'n':
                             return False
+                else:
+                    log_progress(process_number, "payment process", 100, success=False)
+            else:
+                log_progress(process_number, "payment process", 100, success=False)
         else:
-            print("Purchase successful!")
+            log_progress(process_number, "payment process", 100, success=True)
             if pause_on_success:
                 choice = input("Lanjut Dor? (Y/N): ")
                 if choice.lower() == 'n':
                     return False
 
     except Exception as e:
-        print(f'Exception occurred while creating order: {e}')
-    
-    print("-------------------------------------------------------")
+        log_progress(process_number, "payment process", 100, success=False)
     for i in range(delay, 0, -1):
         print(f"\033[93mDelay to Continue : {i} (detik)\033[0m", end="\r")
         time.sleep(1)
