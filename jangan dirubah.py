@@ -14,6 +14,7 @@ from app.menus.package import fetch_my_packages, get_packages_by_family
 from app.menus.hot import show_hot_menu, show_hot_menu2
 from app.service.sentry import enter_sentry_mode
 from app.menus.purchase import purchase_by_family, purchase_loop
+from app.service.cache import load_from_cache, save_to_cache
 
 def show_main_menu(profile):
     clear_screen()
@@ -52,21 +53,56 @@ def main():
 
         # Logged in
         if active_user is not None:
-            balance = get_balance(AuthInstance.api_key, active_user["tokens"]["id_token"])
+            # --- Caching Implementation for Account Info ---
+            user_number = active_user["number"]
+            balance_cache_key = f"{user_number}_balance"
+            profile_cache_key = f"{user_number}_profile"
+            tiering_cache_key = f"{user_number}_tiering"
+
+            # 1. Get Balance from Cache or API
+            balance = load_from_cache(balance_cache_key)
+            if balance is None:
+                print("Mengambil info saldo dari API...")
+                balance = get_balance(AuthInstance.api_key, active_user["tokens"]["id_token"])
+                if balance:
+                    save_to_cache(balance_cache_key, balance)
+                else:
+                    print("Gagal mengambil info saldo. Silakan coba lagi.")
+                    pause()
+                    continue
+
+            # 2. Get Profile from Cache or API
+            profile_data = load_from_cache(profile_cache_key)
+            if profile_data is None:
+                print("Mengambil info profil dari API...")
+                profile_data = get_profile(AuthInstance.api_key, active_user["tokens"]["access_token"], active_user["tokens"]["id_token"])
+                if profile_data:
+                    save_to_cache(profile_cache_key, profile_data)
+                else:
+                    print("Gagal mengambil info profil. Silakan coba lagi.")
+                    pause()
+                    continue
+
             balance_remaining = balance.get("remaining")
             balance_expired_at = balance.get("expired_at")
-            
-            profile_data = get_profile(AuthInstance.api_key, active_user["tokens"]["access_token"], active_user["tokens"]["id_token"])
             sub_id = profile_data["profile"]["subscriber_id"]
             sub_type = profile_data["profile"]["subscription_type"]
             
+            # 3. Get Tiering Info (Points) from Cache or API
             point_info = "Points: N/A | Tier: N/A"
-            
             if sub_type == "PREPAID":
-                tiering_data = get_tiering_info(AuthInstance.api_key, active_user["tokens"])
-                tier = tiering_data.get("tier", 0)
-                current_point = tiering_data.get("current_point", 0)
-                point_info = f"Points: {current_point} | Tier: {tier}"
+                tiering_data = load_from_cache(tiering_cache_key)
+                if tiering_data is None:
+                    print("Mengambil info poin dari API...")
+                    tiering_data = get_tiering_info(AuthInstance.api_key, active_user["tokens"])
+                    if tiering_data:
+                        save_to_cache(tiering_cache_key, tiering_data)
+
+                if tiering_data:
+                    tier = tiering_data.get("tier", 0)
+                    current_point = tiering_data.get("current_point", 0)
+                    point_info = f"Points: {current_point} | Tier: {tier}"
+            # --- End Caching Implementation ---
             
             profile = {
                 "number": active_user["number"],

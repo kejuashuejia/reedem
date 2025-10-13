@@ -5,6 +5,7 @@ import requests
 
 from datetime import datetime, timezone, timedelta
 
+from app.service.cache import load_from_cache, save_to_cache
 from app.client.encrypt import (
     encryptsign_xdata,
     java_like_timestamp,
@@ -244,6 +245,15 @@ def get_family(
     is_enterprise: bool | None = None,
     migration_type: str | None = None
 ) -> dict:
+    # --- Caching Implementation for Package Family ---
+    # Use family_code as the primary key for the cache
+    cached_family_data = load_from_cache(family_code)
+    if cached_family_data:
+        print("Mengambil info keluarga paket dari cache...")
+        return cached_family_data
+    # --- End Caching Implementation ---
+
+    print("Mengambil info keluarga paket dari API...")
     is_enterprise_list = [
         False,
         True
@@ -299,6 +309,10 @@ def get_family(
 
     if family_data is None:
         return None
+
+    # --- Caching Implementation: Save to cache on success ---
+    save_to_cache(family_code, family_data)
+    # --- End Caching Implementation ---
 
     return family_data
 
