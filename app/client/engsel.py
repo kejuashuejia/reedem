@@ -30,7 +30,6 @@ UA = os.getenv("UA")
 
 def validate_contact(contact: str) -> bool:
     if not contact.startswith("628") or len(contact) > 14:
-        print("Invalid number")
         return False
     return True
 
@@ -48,7 +47,7 @@ def get_otp(contact: str) -> str:
     }
     
     now = datetime.now(timezone(timedelta(hours=7)))
-    ax_request_at = java_like_timestamp(now)  # format: "2023-10-20T12:34:56.78+07:00"
+    ax_request_at = java_like_timestamp(now)
     ax_request_id = str(uuid.uuid4())
 
     payload = ""
@@ -67,28 +66,22 @@ def get_otp(contact: str) -> str:
         "User-Agent": UA,
     }
 
-    print("Requesting OTP...")
     try:
         response = requests.request("GET", url, data=payload, headers=headers, params=querystring, timeout=30)
-        print("response body", response.text)
         json_body = json.loads(response.text)
     
         if "subscriber_id" not in json_body:
-            print(json_body.get("error", "No error message in response"))
             raise ValueError("Subscriber ID not found in response")
         
         return json_body["subscriber_id"]
     except Exception as e:
-        print(f"Error requesting OTP: {e}")
         return None
     
 def submit_otp(api_key: str, contact: str, code: str):
     if not validate_contact(contact):
-        print("Invalid number")
         return None
     
     if not code or len(code) != 6:
-        print("Invalid OTP code format")
         return None
     
     url = SUBMIT_OTP_URL
@@ -120,13 +113,10 @@ def submit_otp(api_key: str, contact: str, code: str):
         json_body = json.loads(response.text)
         
         if "error" in json_body:
-            print(f"[Error submit_otp]: {json_body['error_description']}")
             return None
         
-        print("Login successful.")
         return json_body
     except requests.RequestException as e:
-        print(f"[Error submit_otp]: {e}")
         return None
 
 def get_new_token(refresh_token: str) -> str:
@@ -158,7 +148,6 @@ def get_new_token(refresh_token: str) -> str:
     resp = requests.post(url, headers=headers, data=data, timeout=30)
     if resp.status_code == 400:
         if resp.json().get("error_description") == "Session not active":
-            print("Refresh token expired. Pleas remove and re-add the account.")
             return None
         
     resp.raise_for_status()
@@ -209,20 +198,13 @@ def send_api_request(
         "x-version-app": "8.8.0",
     }
     
-    
-
     url = f"{BASE_API_URL}/{path}"
     resp = requests.post(url, headers=headers, data=json.dumps(body), timeout=30)
-    
-    # print(f"Headers: {json.dumps(headers, indent=2)}")
-    # print(f"Response body: {resp.text}")
 
     try:
         decrypted_body = decrypt_xdata(api_key, json.loads(resp.text))
-        # print(f"Decrypted body: {json.dumps(decrypted_body, indent=2)}")
         return decrypted_body
     except Exception as e:
-        print("[decrypt err]", e)
         return resp.text
 
 def get_profile(api_key: str, access_token: str, id_token: str) -> dict:
@@ -235,7 +217,6 @@ def get_profile(api_key: str, access_token: str, id_token: str) -> dict:
         "lang": "en"
     }
 
-    print("Fetching profile...")
     res = send_api_request(api_key, path, raw_payload, id_token, "POST")
 
     return res.get("data")
@@ -248,15 +229,12 @@ def get_balance(api_key: str, id_token: str) -> dict:
         "lang": "en"
     }
     
-    print("Fetching balance...")
     res = send_api_request(api_key, path, raw_payload, id_token, "POST")
-    # print(f"[GB-256]:\n{json.dumps(res, indent=2)}")
     
     if "data" in res:
         if "balance" in res["data"]:
             return res["data"]["balance"]
     else:
-        print("Error getting balance:", res.get("error", "Unknown error"))
         return None
 
 def get_family(
@@ -266,8 +244,6 @@ def get_family(
     is_enterprise: bool | None = None,
     migration_type: str | None = None
 ) -> dict:
-    print("Fetching package family...")
-    
     is_enterprise_list = [
         False,
         True
@@ -298,8 +274,6 @@ def get_family(
         for ie in is_enterprise_list:
             if family_data is not None:
                 break
-        
-            print(f"Trying is_enterprise={ie}, migration_type={mt}.")
 
             payload_dict = {
                 "is_show_tagging_tab": True,
@@ -316,24 +290,19 @@ def get_family(
             }
         
             res = send_api_request(api_key, path, payload_dict, id_token, "POST")
-            # print(f"[get fam 320]:\n{json.dumps(res, indent=2)}")
             if res.get("status") != "SUCCESS":
                 continue
             
             family_name = res["data"]["package_family"].get("name", "")
             if family_name != "":
                 family_data = res["data"]
-                print(f"Success with is_enterprise={ie}, migration_type={mt}. Family name: {family_name}")
-
 
     if family_data is None:
-        print(f"Failed to get valid family data for {family_code}")
         return None
 
     return family_data
 
 def get_families(api_key: str, tokens: dict, package_category_code: str) -> dict:
-    print("Fetching families...")
     path = "api/v8/xl-stores/families"
     payload_dict = {
         "migration_type": "",
@@ -347,10 +316,6 @@ def get_families(api_key: str, tokens: dict, package_category_code: str) -> dict
     
     res = send_api_request(api_key, path, payload_dict, tokens["id_token"], "POST")
     if res.get("status") != "SUCCESS":
-        print(f"Failed to get families for category {package_category_code}")
-        print(f"Res:{res}")
-        # print(json.dumps(res, indent=2))
-        input("Press Enter to continue...")
         return None
     return res["data"]
 
@@ -378,13 +343,9 @@ def get_package(
         "package_variant_code": package_variant_code
     }
     
-    print("Fetching package...")
-    # print(f"Payload: {json.dumps(raw_payload, indent=2)}")
     res = send_api_request(api_key, path, raw_payload, tokens["id_token"], "POST")
     
     if "data" not in res:
-        print(json.dumps(res, indent=2))
-        print("Error getting package:", res.get("error", "Unknown error"))
         return None
         
     return res["data"]
@@ -398,11 +359,9 @@ def get_addons(api_key: str, tokens: dict, package_option_code: str) -> dict:
         "package_option_code": package_option_code
     }
     
-    print("Fetching addons...")
     res = send_api_request(api_key, path, raw_payload, tokens["id_token"], "POST")
     
     if "data" not in res:
-        print("Error getting addons:", res.get("error", "Unknown error"))
         return None
         
     return res["data"]
@@ -421,13 +380,7 @@ def intercept_page(
         "package_option_code": option_code
     }
     
-    print("Fetching intercept page...")
-    res = send_api_request(api_key, path, raw_payload, tokens["id_token"], "POST")
-    
-    if "status" in res:
-        print(f"Intercept status: {res['status']}")
-    else:
-        print("Intercept error")
+    send_api_request(api_key, path, raw_payload, tokens["id_token"], "POST")
 
 def login_info(
     api_key: str,
@@ -445,8 +398,6 @@ def login_info(
     res = send_api_request(api_key, path, raw_payload, tokens["id_token"], "POST")
     
     if "data" not in res:
-        print(json.dumps(res, indent=2))
-        print("Error getting package:", res.get("error", "Unknown error"))
         return None
         
     return res["data"]
@@ -464,7 +415,6 @@ def get_package_details(
     if family_data is None:
         family_data = get_family(api_key, tokens, family_code, is_enterprise, migration_type)
         if not family_data:
-            print(f"Gagal mengambil data family untuk {family_code}.")
             return None
     
     package_options = []
@@ -482,12 +432,10 @@ def get_package_details(
                     break
 
     if option_code is None:
-        print("Gagal menemukan opsi paket yang sesuai.")
         return None
         
     package_details_data = get_package(api_key, tokens, option_code, family_code, variant_code)
     if not package_details_data:
-        print("Gagal mengambil detail paket.")
         return None
     
     return package_details_data
