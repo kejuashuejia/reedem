@@ -1,5 +1,6 @@
 import requests
 
+from app.client.encrypt import BASE_CRYPTO_URL
 from app.client.engsel import get_family, get_package_details
 from app.menus.package import show_package_details
 from app.service.auth import AuthInstance
@@ -20,7 +21,7 @@ def show_hot_menu():
         print("====================🔥 Paket  Hot 🔥===================")
         print("=======================================================")
         
-        url = "https://me.mashu.lol/pg-hot.json"
+        url = BASE_CRYPTO_URL + "/pghot1"
         response = requests.get(url, timeout=30)
         if response.status_code != 200:
             print("Gagal mengambil data hot package.")
@@ -83,7 +84,7 @@ def show_hot_menu2():
         print("===================🔥 Paket  Hot 2 🔥==================")
         print("=======================================================")
         
-        url = "https://me.mashu.lol/pg-hot2.json"
+        url = BASE_CRYPTO_URL + "/pghot2"
         response = requests.get(url, timeout=30)
         if response.status_code != 200:
             print("Gagal mengambil data hot package.")

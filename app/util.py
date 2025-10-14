@@ -1,100 +1,41 @@
 import os
-import sys
-import requests
+from dotenv import load_dotenv, find_dotenv
 
-# Load API key from text file named api.key
-def load_api_key() -> str:
-    if os.path.exists("api.key"):
-        with open("api.key", "r", encoding="utf8") as f:
-            api_key = f.read().strip()
-        if api_key:
-            print("API key loaded successfully.")
-            return api_key
-        else:
-            print("API key file is empty.")
-            return ""
-    else:
-        print("API key file not found.")
-        return ""
-    
 def save_api_key(api_key: str):
-    with open("api.key", "w", encoding="utf8") as f:
-        f.write(api_key)
-    print("API key saved successfully.")
+    """Saves the API key to the .env file."""
+    env_file = find_dotenv()
+    if not env_file:
+        env_file = ".env" # Create it if it doesn't exist
+
+    lines = []
+    key_found = False
+    if os.path.exists(env_file):
+        with open(env_file, "r") as f:
+            lines = f.readlines()
+
+    with open(env_file, "w") as f:
+        for line in lines:
+            if line.strip().startswith("API_KEY="):
+                f.write(f'API_KEY="{api_key}"\n')
+                key_found = True
+            else:
+                f.write(line)
+        if not key_found:
+            f.write(f'API_KEY="{api_key}"\n')
     
-def delete_api_key():
-    if os.path.exists("api.key"):
-        os.remove("api.key")
-        print("API key file deleted.")
-    else:
-        print("API key file does not exist.")
+    # Reload the environment variables
+    load_dotenv(override=True)
 
-def verify_api_key(api_key: str, *, timeout: float = 10.0) -> bool:
-    """
-    Returns True iff the verification endpoint responds with HTTP 200.
-    Any network error or non-200 is treated as invalid.
-    """
-    try:
-        url = f"https://crypto.mashu.lol/api/verify?key={api_key}"
-        resp = requests.get(url, timeout=timeout)
-        if resp.status_code == 200:
-            json_resp = resp.json()
-            print(
-                f"API key is valid.\n"
-                f"Id: {json_resp.get('user_id')}\n"
-                f"Owner: @{json_resp.get('username')}\n"
-                f"Credit: {json_resp.get('credit')}\n"
-                f"Premium Credit: {json_resp.get('premium_credit')}\n"
-            )
-
-            return True
-        else:
-            print(f"API key is invalid. Server responded with status code {resp.status_code}.")
-            return False
-    except requests.RequestException as e:
-        print(f"Failed to verify API key: {e}")
-        return False
-
-def get_user_info(api_key: str, *, timeout: float = 10.0) -> dict:
-    """
-    Fetch user info from the API.
-    Raises an exception if the request fails or the API key is invalid.
-    """
-    try:
-        url = f"https://crypto.mashu.lol/api/verify?key={api_key}"
-        resp = requests.get(url, timeout=timeout)
-        if resp.status_code == 200:
-            return resp.json()
-        else:
-            raise Exception(f"Failed to fetch user info: {resp.status_code} {resp.text}")
-    except requests.RequestException as e:
-        raise Exception(f"Network error while fetching user info: {e}") from e
-
-def ensure_api_key() -> str:
-    """
-    Load api.key if present; otherwise prompt the user.
-    Always verifies the key. Saves only if valid.
-    Exits the program if invalid or empty.
-    """
-    # Try to load an existing key
-    current = load_api_key()
-    if current:
-        if verify_api_key(current):
-            return current
-        else:
-            print("Existing API key is invalid. Please enter a new one.")
-
-    # Prompt user if missing or invalid
-    print("Dapatkan API key di Bot Telegram @fyxt_bot")
-    api_key = input("Masukkan API key: ").strip()
+def get_api_key():
+    """Gets the API key from environment variables or prompts the user."""
+    load_dotenv()
+    api_key = os.getenv("API_KEY")
     if not api_key:
-        print("API key tidak boleh kosong. Menutup aplikasi.")
-        sys.exit(1)
-
-    if not verify_api_key(api_key):
-        print("API key tidak valid. Menutup aplikasi.")
-        delete_api_key()
-        sys.exit(1)
-
-    save_api_key(api_key)
+        print("API Key not found.")
+        api_key = input("Please enter your API Key: ").strip()
+        if api_key:
+            save_api_key(api_key)
+        else:
+            print("API Key cannot be empty. Exiting.")
+            exit(1)
     return api_key

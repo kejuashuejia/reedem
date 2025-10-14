@@ -2,7 +2,6 @@ import os
 import json
 import time
 from app.client.engsel import get_new_token
-from app.util import ensure_api_key
 
 class Auth:
     _instance_ = None
@@ -35,7 +34,6 @@ class Auth:
             # Select active user from file if available
             self.load_active_number()
 
-            self.api_key = ensure_api_key()
             self.last_refresh_time = int(time.time())
 
             self._initialized_ = True

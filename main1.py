@@ -3,29 +3,24 @@ from dotenv import load_dotenv
 load_dotenv() 
 
 import sys
-import os
-from datetime import datetime
 from app.menus.util import clear_screen, pause
-from app.client.engsel import get_balance, get_profile
-from app.client.engsel2 import get_tiering_info
+from app.client.engsel import *
+from app.menus.payment import show_transaction_history
 from app.service.auth import AuthInstance
+from app.menus.bookmark import show_bookmark_menu
 from app.menus.account import show_account_menu
+from app.menus.package import fetch_my_packages, get_packages_by_family
+from app.menus.hot import show_hot_menu, show_hot_menu2
+from app.service.sentry import enter_sentry_mode
 from app.menus.purchase import purchase_by_family, purchase_loop
+
 from app.menus.family_bookmark import show_family_bookmark_menu
-from app.util import get_api_key, save_api_key
 
-WIDTH = 55
-
-def show_main_menu(profile):
+def show_main_menu(active_user):
     clear_screen()
-    print("=" * WIDTH)
-    expired_at_dt = datetime.fromtimestamp(profile["balance_expired_at"]).strftime("%Y-%m-%d")
-    print(f"Nomor: {profile['number']} | Type: {profile['subscription_type']}".center(WIDTH))
-    print(f"Pulsa: Rp {profile['balance']} | Aktif sampai: {expired_at_dt}".center(WIDTH))
-    print(f"{profile['point_info']}".center(WIDTH))
-    print("=" * WIDTH)
+    print(f"Active Number: {active_user['number']}")
+    print("-------------------------------------------------------")
     print("Menu:")
-    print("0. Original Menu")
     print("1. Login/Ganti akun")
     print("2. [Test] Purchase all packages in family code")
     print("-------------------------------------------------------")
@@ -41,44 +36,18 @@ def show_main_menu(profile):
     print("99. Tutup aplikasi")
     print("-------------------------------------------------------")
 
+show_menu = True
 def main():
-    AuthInstance.api_key = get_api_key()
+    
     while True:
         active_user = AuthInstance.get_active_user()
 
         # Logged in
         if active_user is not None:
-            balance = get_balance(AuthInstance.api_key, active_user["tokens"]["id_token"])
-            balance_remaining = balance.get("remaining")
-            balance_expired_at = balance.get("expired_at")
-            
-            profile_data = get_profile(AuthInstance.api_key, active_user["tokens"]["access_token"], active_user["tokens"]["id_token"])
-            sub_id = profile_data["profile"]["subscriber_id"]
-            sub_type = profile_data["profile"]["subscription_type"]
-            
-            point_info = "Points: N/A | Tier: N/A"
-            
-            if sub_type == "PREPAID":
-                tiering_data = get_tiering_info(AuthInstance.api_key, active_user["tokens"])
-                tier = tiering_data.get("tier", 0)
-                current_point = tiering_data.get("current_point", 0)
-                point_info = f"Points: {current_point} | Tier: {tier}"
-            
-            profile = {
-                "number": active_user["number"],
-                "subscriber_id": sub_id,
-                "subscription_type": sub_type,
-                "balance": balance_remaining,
-                "balance_expired_at": balance_expired_at,
-                "point_info": point_info
-            }
-            
-            show_main_menu(profile)
+            show_main_menu(active_user)
 
             choice = input("Pilih menu: ")
-            if choice == "0":
-                os.system(f'"{sys.executable}" master.py')
-            elif choice == "1":
+            if choice == "1":
                 selected_user_number = show_account_menu()
                 if selected_user_number:
                     AuthInstance.set_active_user(selected_user_number)
@@ -96,78 +65,73 @@ def main():
                 delay = int(input("Enter delay in seconds: "))
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
-                    if not purchase_loop(
+                    purchase_loop(
                         family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
                         order=26,
                         use_decoy=True,
                         delay=delay,
                         pause_on_success=pause_on_success
-                    ):
-                        break
+                    )
             elif choice == "4":
                 delay = int(input("Enter delay in seconds: "))
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
-                    if not purchase_loop(
+                    purchase_loop(
                         family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
                         order=3,
                         use_decoy=True,
                         delay=delay,
                         pause_on_success=pause_on_success
-                    ):
-                        break
+                    )
             elif choice == "5":
                 delay = int(input("Enter delay in seconds: "))
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
-                    if not purchase_loop(
+                    purchase_loop(
                         family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
                         order=1,
                         use_decoy=True,
                         delay=delay,
                         pause_on_success=pause_on_success
-                    ):
-                        break
+                    )
             elif choice == "6":
                 delay = int(input("Enter delay in seconds: "))
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
-                    if not purchase_loop(
+                    purchase_loop(
                         family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
                         order=52,
                         use_decoy=True,
                         delay=delay,
                         pause_on_success=pause_on_success
-                    ):
-                        break
+                    )
             elif choice == "7":
                 delay = int(input("Enter delay in seconds: "))
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
-                    if not purchase_loop(
+                    purchase_loop(
                         family_code='5412b964-474e-42d3-9c86-f5692da627db',
                         order=64,
                         use_decoy=True,
                         delay=delay,
                         pause_on_success=pause_on_success
-                    ):
-                        break
+                    )
             elif choice == "8":
                 family_code = input("Enter family code: ")
                 order = int(input("Enter order number: "))
                 delay = int(input("Enter delay in seconds: "))
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
-                    if not purchase_loop(
+                    purchase_loop(
                         family_code=family_code,
                         order=order,
                         use_decoy=True,
                         delay=delay,
                         pause_on_success=pause_on_success
-                    ):
-                        break
+                    )
             elif choice == "9":
                 show_family_bookmark_menu()
+
             elif choice == "99":
                 print("Exiting the application.")
                 sys.exit(0)
@@ -186,6 +150,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("Exiting the application.")
+        print("\nExiting the application.")
     # except Exception as e:
     #     print(f"An error occurred: {e}")
