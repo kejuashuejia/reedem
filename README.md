@@ -25,5 +25,7 @@ bash setup.sh
 ```
 python main.py
 ```
-7. Input your API key when prompted
 
+## Contact
+
+Telegram: https://t.me/AnooooMaliEngsellllll
