@@ -2,21 +2,21 @@ from app.menus.util import clear_screen, pause
 from app.service.family_bookmark import FamilyBookmarkInstance
 from app.client.engsel import get_family
 from app.service.auth import AuthInstance
-from app.menus.purchase import purchase_by_family
+from app.menus.purchase import purchase_loop
 
 def show_family_bookmark_menu():
     while True:
         clear_screen()
         print("-------------------------------------------------------")
-        print("Bookmark Family Code")
+        print("Bookmark Family Paket")
         print("-------------------------------------------------------")
         
         bookmarks = FamilyBookmarkInstance.get_bookmarks()
         if not bookmarks:
-            print("Tidak ada bookmark family code tersimpan.")
+            print("Tidak ada bookmark family paket tersimpan.")
         else:
             for idx, bm in enumerate(bookmarks):
-                print(f"{idx + 1}. {bm['family_name']} ({bm['family_code']})")
+                print(f"{idx + 1}. {bm['name']} ({bm['family_code']}/{bm['order']})")
 
         print("\nMenu:")
         print("a. Tambah Bookmark")
@@ -32,19 +32,15 @@ def show_family_bookmark_menu():
         if choice == '0':
             break
         elif choice == 'a':
-            family_code = input("Masukkan Family Code yang ingin di-bookmark: ").strip()
-            if family_code:
-                # Get family name for user-friendly display
-                tokens = AuthInstance.get_active_tokens()
-                family_data = get_family(AuthInstance.api_key, tokens, family_code)
-                if family_data and "package_family" in family_data:
-                    family_name = family_data["package_family"]["name"]
-                    FamilyBookmarkInstance.add_bookmark(family_code, family_name)
-                else:
-                    print("Gagal mendapatkan data family. Pastikan family code valid.")
+            name = input("Masukkan Nama Bookmark: ").strip()
+            family_code = input("Masukkan Family Code: ").strip()
+            order_str = input("Masukkan Nomor Order: ").strip()
+            if name and family_code and order_str.isdigit():
+                order = int(order_str)
+                FamilyBookmarkInstance.add_bookmark(name, family_code, order)
                 pause()
             else:
-                print("Family code tidak boleh kosong.")
+                print("Nama, family code, dan nomor order harus diisi dengan benar.")
                 pause()
         elif choice == 'd':
             if not bookmarks:
@@ -53,18 +49,30 @@ def show_family_bookmark_menu():
                 continue
             del_choice = input("Masukkan nomor bookmark yang ingin dihapus: ")
             if del_choice.isdigit() and 1 <= int(del_choice) <= len(bookmarks):
-                bm_to_delete = bookmarks[int(del_choice) - 1]
-                FamilyBookmarkInstance.remove_bookmark(bm_to_delete['family_code'])
+                FamilyBookmarkInstance.remove_bookmark(int(del_choice) - 1)
             else:
                 print("Input tidak valid.")
             pause()
         elif choice.isdigit() and bookmarks and 1 <= int(choice) <= len(bookmarks):
             selected_bm = bookmarks[int(choice) - 1]
-            print(f"Membeli paket dari family: {selected_bm['family_name']}")
-            # Here we call the purchase flow
-            use_decoy = input("Use decoy package? (y/n): ").lower() == 'y'
-            pause_on_success = input("Pause on each successful purchase? (y/n): ").lower() == 'y'
-            purchase_by_family(selected_bm['family_code'], use_decoy, pause_on_success)
+            print(f"Membeli paket: {selected_bm['name']}")
+            
+            use_decoy_str = input("Use decoy package? (y/n, default n): ").lower()
+            use_decoy = use_decoy_str == 'y'
+
+            delay_str = input("Masukkan delay antar pembelian (detik, default 5): ").strip()
+            delay = int(delay_str) if delay_str.isdigit() else 5
+
+            pause_on_success_str = input("Pause on each successful purchase? (y/n, default n): ").lower()
+            pause_on_success = pause_on_success_str == 'y'
+            
+            purchase_loop(
+                family_code=selected_bm['family_code'],
+                order=selected_bm['order'],
+                use_decoy=use_decoy,
+                delay=delay,
+                pause_on_success=pause_on_success
+            )
         else:
             print("Pilihan tidak valid.")
             pause()
