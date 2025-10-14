@@ -66,13 +66,16 @@ def show_family_bookmark_menu():
             pause_on_success_str = input("Pause on each successful purchase? (y/n, default n): ").lower()
             pause_on_success = pause_on_success_str == 'y'
             
-            purchase_loop(
-                family_code=selected_bm['family_code'],
-                order=selected_bm['order'],
-                use_decoy=use_decoy,
-                delay=delay,
-                pause_on_success=pause_on_success
-            )
+            while True:
+                should_continue = purchase_loop(
+                    family_code=selected_bm['family_code'],
+                    order=selected_bm['order'],
+                    use_decoy=use_decoy,
+                    delay=delay,
+                    pause_on_success=pause_on_success
+                )
+                if not should_continue:
+                    break
         else:
             print("Pilihan tidak valid.")
             pause()
