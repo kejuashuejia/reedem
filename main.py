@@ -10,13 +10,27 @@ from app.service.auth import AuthInstance
 from app.menus.account import show_account_menu
 from app.menus.purchase import purchase_by_family, purchase_loop
 from app.menus.family_bookmark import show_family_bookmark_menu
-from app.menus.loop import bonus_kuota_malam, bebas_puas_tiktok_yt, kuota_pelanggan_baru, bonus_kuota_utama_15gb, bonus_kuota_utama_45gb
-from app.util import get_api_key, save_api_key
+import requests
+from app.menus.loop import start_loop
+from app.menus.bot import run_edubot
+from app.util import get_api_key, save_api_key, PACKAGES_URL
 from colorama import Fore, Style, init
 
 WIDTH = 55
 
-def show_main_menu():
+def fetch_packages():
+    try:
+        response = requests.get(PACKAGES_URL, timeout=10)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        return response.json().get("packages", [])
+    except requests.exceptions.RequestException as e:
+        print(f"Gagal mengambil daftar paket: {e}")
+        return None
+    except ValueError:  # Catches JSON decoding errors
+        print("Gagal mem-parsing data paket dari URL.")
+        return None
+
+def show_main_menu(packages):
     clear_screen()
     print("Menu Utama".center(WIDTH))
     print("=" * WIDTH)
@@ -25,31 +39,47 @@ def show_main_menu():
     print("1. Login/Ganti akun")
     print("2. [Test] Purchase all packages in family code")
     print("-------------------------------------------------------")
-    print("List Bot Auto Looping:")
-    print(f"3. Tiktok 1GB dari Xtra Combo Mini {Fore.GREEN}(Good){Style.RESET_ALL}")
-    print(f"4. Youtube 1GB dari Xtra Combo Mini {Fore.GREEN}(Good){Style.RESET_ALL}")
-    print(f"5. Whatsapp 1GB dari Xtra Combo Mini {Fore.GREEN}(Good){Style.RESET_ALL}")
-    print(f"6. Bonus Kuota Utama 15GB {Fore.RED}(Coid){Style.RESET_ALL}")
-    print(f"7. Bonus Kuota Utama 45GB {Fore.RED}(Coid){Style.RESET_ALL}")
-    print("8. Mode Custom (family code dan nomer order)")
+    print("List Bot Auto Looping (dari URL):")
+    if packages:
+        for i, pkg in enumerate(packages, start=3):
+            status_color = Fore.GREEN if pkg.get('status', 'Coid').lower() == 'good' else Fore.RED
+            print(f"{i}. {pkg['name']} {status_color}({pkg.get('status', 'N/A')}){Style.RESET_ALL}")
+    else:
+        print("Gagal memuat daftar paket. Periksa koneksi internet atau URL.")
+    
+    custom_mode_number = len(packages) + 3 if packages else 3
+    print(f"{custom_mode_number}. Mode Custom (family code dan nomer order)")
     print("-------------------------------------------------------")
-    print("9. Bookmark Family Code")
+    bookmark_menu_number = custom_mode_number + 1
+    edubot_menu_number = custom_mode_number + 2
+    print(f"{bookmark_menu_number}. Bookmark Family Code")
+    print(f"{edubot_menu_number}. Pantau Sisa Kuota")
     print("99. Tutup aplikasi")
     print("-------------------------------------------------------")
+
 
 def main():
     init()
     AuthInstance.api_key = get_api_key()
+    
+    packages = fetch_packages()
+    if not packages:
+        print("Tidak dapat melanjutkan tanpa daftar paket.")
+        pause()
+        return
+
     while True:
         active_user = AuthInstance.get_active_user()
 
-        # Logged in
         if active_user is not None:
-            show_main_menu()
+            show_main_menu(packages)
 
             choice = input("Pilih menu: ")
+            
+            # Static choices
             if choice == "0":
                 os.system(f'"{sys.executable}" master.py')
+                continue
             elif choice == "1":
                 selected_user_number = show_account_menu()
                 if selected_user_number:
@@ -64,48 +94,58 @@ def main():
                 use_decoy = input("Use decoy package? (y/n): ").lower() == 'y'
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 purchase_by_family(family_code, use_decoy, pause_on_success)
-            elif choice == "3":
-                bonus_kuota_malam()
-            elif choice == "4":
-                bebas_puas_tiktok_yt()
-            elif choice == "5":
-                kuota_pelanggan_baru()
-            elif choice == "6":
-                bonus_kuota_utama_15gb()
-            elif choice == "7":
-                bonus_kuota_utama_45gb()
-            elif choice == "8":
-                family_code = input("Enter family code: ")
-                orders_input = input("Enter single/multiple order number(s) [ex: 1 or 1,2,3:] ")
-                orders = [int(o.strip()) for o in orders_input.split(',')]
-                delay = int(input("Enter delay in seconds: "))
-                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
-                while True:
-                    for order in orders:
-                        print(f"Processing order {order}...")
-                        if not purchase_loop(
-                            family_code=family_code,
-                            order=order,
-                            use_decoy=True,
-                            delay=delay,
-                            pause_on_success=pause_on_success
-                        ):
-                            print(f"Purchase for order {order} failed. Stopping loop.")
-                            break # break inner loop
-                    else:
-                        # This block executes if the inner loop completes without a break
-                        continue
-                    break # break outer loop
-            elif choice == "9":
-                show_family_bookmark_menu()
+                continue
             elif choice == "99":
                 print("Exiting the application.")
                 sys.exit(0)
-            else:
+
+            # Dynamic choices
+            try:
+                choice_int = int(choice)
+                
+                # Package choices
+                if 3 <= choice_int < 3 + len(packages):
+                    selected_package = packages[choice_int - 3]
+                    start_loop(selected_package)
+                    continue
+
+                custom_mode_number = len(packages) + 3
+                bookmark_menu_number = custom_mode_number + 1
+                edubot_menu_number = custom_mode_number + 2
+
+                if choice_int == custom_mode_number:
+                    family_code = input("Enter family code: ")
+                    orders_input = input("Enter single/multiple order number(s) [ex: 1 or 1,2,3:] ")
+                    orders = [int(o.strip()) for o in orders_input.split(',')]
+                    delay = int(input("Enter delay in seconds: "))
+                    pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
+                    while True:
+                        for order in orders:
+                            print(f"Processing order {order}...")
+                            if not purchase_loop(
+                                family_code=family_code,
+                                order=order,
+                                use_decoy=True,
+                                delay=delay,
+                                pause_on_success=pause_on_success
+                            ):
+                                print(f"Purchase for order {order} failed. Stopping loop.")
+                                break 
+                        else:
+                            continue
+                        break
+                elif choice_int == bookmark_menu_number:
+                    show_family_bookmark_menu()
+                elif choice_int == edubot_menu_number:
+                    run_edubot()
+                else:
+                    print("Invalid choice. Please try again.")
+                    pause()
+
+            except ValueError:
                 print("Invalid choice. Please try again.")
                 pause()
         else:
-            # Not logged in
             selected_user_number = show_account_menu()
             if selected_user_number:
                 AuthInstance.set_active_user(selected_user_number)

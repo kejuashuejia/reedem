@@ -4,6 +4,16 @@ import os
 import re
 import textwrap
 
+WIDTH = 55
+
+class Style:
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    CYAN = '\033[96m'
+    MAGENTA = '\033[95m'
+    RESET = '\033[0m'
+
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
     width = 55
@@ -11,10 +21,26 @@ def clear_screen():
     print(f" Special Thx for Baka Mitai 😘".center(width))
     print("=" * width)
     print("")
+
+def print_header(title):
+    clear_screen()
+    print(title.center(WIDTH))
+    print("=" * WIDTH)
         
 
 def pause():
     input("\nPress enter to continue...")
+
+def format_quota(byte_val: int) -> str:
+    if byte_val is None:
+        return "N/A"
+    power = 1024
+    n = 0
+    power_labels = {0: 'B', 1: 'KB', 2: 'MB', 3: 'GB', 4: 'TB'}
+    while byte_val >= power and n < len(power_labels):
+        byte_val /= power
+        n += 1
+    return f"{byte_val:.2f} {power_labels[n]}"
 
 class HTMLToText(HTMLParser):
     def __init__(self, width=80):

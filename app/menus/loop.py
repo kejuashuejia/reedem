@@ -1,70 +1,34 @@
 from app.menus.purchase import purchase_loop
 from app.menus.util import clear_screen, pause
 
-WIDTH = 55
+def start_loop(package):
+    """
+    Starts a generic purchase loop for a given package.
 
-def bonus_kuota_malam():
-    delay = int(input("Enter delay in seconds: "))
-    pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
+    Args:
+        package (dict): A dictionary containing package details 
+                        like 'name', 'family_code', and 'order'.
+    """
+    clear_screen()
+    print(f"Memulai loop untuk paket: {package['name']}")
+    print("=" * 55)
+    
+    try:
+        delay = int(input("Masukkan jeda (delay) dalam detik: "))
+    except ValueError:
+        print("Input tidak valid, menggunakan jeda default 1 detik.")
+        delay = 1
+        
+    pause_on_success = input("Aktifkan mode jeda setelah sukses (pause)? (y/n): ").lower() == 'y'
+    
     while True:
         if not purchase_loop(
-            family_code='5412b964-474e-42d3-9c86-f5692da627db',
-            order=211,
+            family_code=package['family_code'],
+            order=package['order'],
             use_decoy=True,
             delay=delay,
             pause_on_success=pause_on_success
         ):
+            print(f"Loop untuk paket '{package['name']}' berhenti.")
+            pause()
             break
-
-def bebas_puas_tiktok_yt():
-    delay = int(input("Enter delay in seconds: "))
-    pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
-    while True:
-        if not purchase_loop(
-            family_code='5412b964-474e-42d3-9c86-f5692da627db',
-            order=212,
-            use_decoy=True,
-            delay=delay,
-            pause_on_success=pause_on_success
-        ):
-            break
-
-def kuota_pelanggan_baru():
-    delay = int(input("Enter delay in seconds: "))
-    pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
-    while True:
-        if not purchase_loop(
-            family_code='5412b964-474e-42d3-9c86-f5692da627db',
-            order=210,
-            use_decoy=True,
-            delay=delay,
-            pause_on_success=pause_on_success
-        ):
-            break
-
-def bonus_kuota_utama_15gb():
-    delay = int(input("Enter delay in seconds: "))
-    pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
-    while True:
-        if not purchase_loop(
-            family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
-            order=52,
-            use_decoy=True,
-            delay=delay,
-            pause_on_success=pause_on_success
-        ):
-            break
-
-def bonus_kuota_utama_45gb():
-    delay = int(input("Enter delay in seconds: "))
-    pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
-    while True:
-        if not purchase_loop(
-            family_code='5412b964-474e-42d3-9c86-f5692da627db',
-            order=64,
-            use_decoy=True,
-            delay=delay,
-            pause_on_success=pause_on_success
-        ):
-            break
-
