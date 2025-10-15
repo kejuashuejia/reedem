@@ -28,7 +28,7 @@ def show_main_menu():
     print("List Bot Auto Looping:")
     print(f"3. Tiktok 1GB dari Xtra Combo Mini {Fore.GREEN}(Good){Style.RESET_ALL}")
     print(f"4. Youtube 1GB dari Xtra Combo Mini {Fore.GREEN}(Good){Style.RESET_ALL}")
-    print(f"5. Whatsapp 1GB dari 1GB dari Xtra Combo Mini {Fore.GREEN}(Good){Style.RESET_ALL}")
+    print(f"5. Whatsapp 1GB dari Xtra Combo Mini {Fore.GREEN}(Good){Style.RESET_ALL}")
     print(f"6. Bonus Kuota Utama 15GB {Fore.RED}(Coid){Style.RESET_ALL}")
     print(f"7. Bonus Kuota Utama 45GB {Fore.RED}(Coid){Style.RESET_ALL}")
     print("8. Mode Custom (family code dan nomer order)")
