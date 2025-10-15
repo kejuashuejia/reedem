@@ -25,10 +25,10 @@ def fetch_packages():
         return response.json().get("packages", [])
     except requests.exceptions.RequestException as e:
         print(f"Gagal mengambil daftar paket: {e}")
-        return None
+        return []
     except ValueError:  # Catches JSON decoding errors
-        print("Gagal mem-parsing data paket dari URL.")
-        return None
+        print(f"Gagal mem-parsing data paket dari URL. Pastikan URL berisi JSON yang valid.")
+        return []
 
 def show_main_menu(packages, active_user):
     clear_screen()
@@ -42,13 +42,13 @@ def show_main_menu(packages, active_user):
     print("1. Login/Ganti akun")
     print("2. [Test] Purchase all packages in family code")
     print("-------------------------------------------------------")
-    print("List Bot Auto Looping (dari URL):")
+    print("List Bot Auto Looping:")
     if packages:
         for i, pkg in enumerate(packages, start=3):
             status_color = Fore.GREEN if pkg.get('status', 'Coid').lower() == 'good' else Fore.RED
             print(f"{i}. {pkg['name']} {status_color}({pkg.get('status', 'N/A')}){Style.RESET_ALL}")
     else:
-        print("Gagal memuat daftar paket. Periksa koneksi internet atau URL.")
+        print(f"{Fore.YELLOW}Sorry Guys, belum nemu paket baru. Sabar ya!{Style.RESET_ALL}")
     
     custom_mode_number = len(packages) + 3 if packages else 3
     print(f"{custom_mode_number}. Mode Custom (family code dan nomer order)")
@@ -66,10 +66,6 @@ def main():
     AuthInstance.api_key = get_api_key()
     
     packages = fetch_packages()
-    if not packages:
-        print("Tidak dapat melanjutkan tanpa daftar paket.")
-        pause()
-        return
 
     while True:
         active_user = AuthInstance.get_active_user()
