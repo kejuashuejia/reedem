@@ -28,4 +28,4 @@ python main.py
 
 ## Contact
 
-Telegram: https://t.me/AnooooMaliEngsellllll
+Baka Mita
