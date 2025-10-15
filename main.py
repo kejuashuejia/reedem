@@ -30,10 +30,13 @@ def fetch_packages():
         print("Gagal mem-parsing data paket dari URL.")
         return None
 
-def show_main_menu(packages):
+def show_main_menu(packages, active_user):
     clear_screen()
     print("Menu Utama".center(WIDTH))
     print("=" * WIDTH)
+    if active_user and 'number' in active_user:
+        print(f"Nomor Aktif: {Fore.YELLOW}{active_user['number']}{Style.RESET_ALL}")
+        print("=" * WIDTH)
     print("Menu:")
     print("0. Original Menu")
     print("1. Login/Ganti akun")
@@ -72,7 +75,7 @@ def main():
         active_user = AuthInstance.get_active_user()
 
         if active_user is not None:
-            show_main_menu(packages)
+            show_main_menu(packages, active_user)
 
             choice = input("Pilih menu: ")
             

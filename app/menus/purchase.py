@@ -146,7 +146,9 @@ def purchase_loop(
         if res and res.get("status", "") == "SUCCESS":
             print("Purchase successful!")
             if pause_on_success:
-                pause()
+                choice = input("Lanjut Dor? (y/n): ").lower()
+                if choice == 'n':
+                    return False # Stop the loop
         else:
             print("Purchase was not successful. Check message above.")
 
