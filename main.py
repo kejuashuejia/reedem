@@ -10,7 +10,9 @@ from app.service.auth import AuthInstance
 from app.menus.account import show_account_menu
 from app.menus.purchase import purchase_by_family, purchase_loop
 from app.menus.family_bookmark import show_family_bookmark_menu
+from app.menus.loop import bonus_kuota_malam, bebas_puas_tiktok_yt, kuota_pelanggan_baru, bonus_kuota_utama_15gb, bonus_kuota_utama_45gb
 from app.util import get_api_key, save_api_key
+from colorama import Fore, Style, init
 
 WIDTH = 55
 
@@ -24,11 +26,11 @@ def show_main_menu():
     print("2. [Test] Purchase all packages in family code")
     print("-------------------------------------------------------")
     print("List Bot Auto Looping:")
-    print("3. Bonus Kuota Malam 72GB")
-    print("4. Bebas Puas TIKTOK/YT ADD-ON 39GB")
-    print("5. Kuota Pelanggan Baru 10GB + 30H (Accumulate)")
-    print("6. Bonus Kuota Utama 15GB")
-    print("7. Bonus Kuota Utama 45GB")
+    print(f"3. Bonus Kuota Malam 72GB {Fore.RED}(Coid){Style.RESET_ALL}")
+    print(f"4. Bebas Puas TIKTOK/YT ADD-ON 39GB {Fore.RED}(Coid){Style.RESET_ALL}")
+    print(f"5. Kuota Pelanggan Baru 10GB + 30H (Accumulate) {Fore.RED}(Coid){Style.RESET_ALL}")
+    print(f"6. Bonus Kuota Utama 15GB {Fore.RED}(Coid){Style.RESET_ALL}")
+    print(f"7. Bonus Kuota Utama 45GB {Fore.RED}(Coid){Style.RESET_ALL}")
     print("8. Mode Custom (family code dan nomer order)")
     print("-------------------------------------------------------")
     print("9. Bookmark Family Code")
@@ -36,6 +38,7 @@ def show_main_menu():
     print("-------------------------------------------------------")
 
 def main():
+    init()
     AuthInstance.api_key = get_api_key()
     while True:
         active_user = AuthInstance.get_active_user()
@@ -62,79 +65,37 @@ def main():
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 purchase_by_family(family_code, use_decoy, pause_on_success)
             elif choice == "3":
-                delay = int(input("Enter delay in seconds: "))
-                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
-                while True:
-                    if not purchase_loop(
-                        family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
-                        order=26,
-                        use_decoy=True,
-                        delay=delay,
-                        pause_on_success=pause_on_success
-                    ):
-                        break
+                bonus_kuota_malam()
             elif choice == "4":
-                delay = int(input("Enter delay in seconds: "))
-                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
-                while True:
-                    if not purchase_loop(
-                        family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
-                        order=3,
-                        use_decoy=True,
-                        delay=delay,
-                        pause_on_success=pause_on_success
-                    ):
-                        break
+                bebas_puas_tiktok_yt()
             elif choice == "5":
-                delay = int(input("Enter delay in seconds: "))
-                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
-                while True:
-                    if not purchase_loop(
-                        family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
-                        order=1,
-                        use_decoy=True,
-                        delay=delay,
-                        pause_on_success=pause_on_success
-                    ):
-                        break
+                kuota_pelanggan_baru()
             elif choice == "6":
-                delay = int(input("Enter delay in seconds: "))
-                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
-                while True:
-                    if not purchase_loop(
-                        family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
-                        order=52,
-                        use_decoy=True,
-                        delay=delay,
-                        pause_on_success=pause_on_success
-                    ):
-                        break
+                bonus_kuota_utama_15gb()
             elif choice == "7":
-                delay = int(input("Enter delay in seconds: "))
-                pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
-                while True:
-                    if not purchase_loop(
-                        family_code='5412b964-474e-42d3-9c86-f5692da627db',
-                        order=64,
-                        use_decoy=True,
-                        delay=delay,
-                        pause_on_success=pause_on_success
-                    ):
-                        break
+                bonus_kuota_utama_45gb()
             elif choice == "8":
                 family_code = input("Enter family code: ")
-                order = int(input("Enter order number: "))
+                orders_input = input("Enter single/multiple order number(s) [ex: 1 or 1,2,3:] ")
+                orders = [int(o.strip()) for o in orders_input.split(',')]
                 delay = int(input("Enter delay in seconds: "))
                 pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
                 while True:
-                    if not purchase_loop(
-                        family_code=family_code,
-                        order=order,
-                        use_decoy=True,
-                        delay=delay,
-                        pause_on_success=pause_on_success
-                    ):
-                        break
+                    for order in orders:
+                        print(f"Processing order {order}...")
+                        if not purchase_loop(
+                            family_code=family_code,
+                            order=order,
+                            use_decoy=True,
+                            delay=delay,
+                            pause_on_success=pause_on_success
+                        ):
+                            print(f"Purchase for order {order} failed. Stopping loop.")
+                            break # break inner loop
+                    else:
+                        # This block executes if the inner loop completes without a break
+                        continue
+                    break # break outer loop
             elif choice == "9":
                 show_family_bookmark_menu()
             elif choice == "99":
