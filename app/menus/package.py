@@ -354,7 +354,7 @@ def show_package_details(api_key, tokens, package_option_code, is_enterprise, op
                 
         elif choice == '7':
             # QRIS; Decoy Edu
-            url = BASE_CRYPTO_URL + "/decoyedu"
+            url = "https://pastebin.com/raw/c4JBxxhu"
             
             response = requests.get(url, timeout=30)
             if response.status_code != 200:
@@ -394,7 +394,7 @@ def show_package_details(api_key, tokens, package_option_code, is_enterprise, op
                 api_key,
                 tokens,
                 payment_items,
-                "SHARE_PACKAGE",
+                "BUY_PACKAGE",
                 True,
                 token_confirmation_idx=1
             )
