@@ -8,8 +8,8 @@ def bonus_kuota_malam():
     pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
     while True:
         if not purchase_loop(
-            family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
-            order=26,
+            family_code='5412b964-474e-42d3-9c86-f5692da627db',
+            order=211,
             use_decoy=True,
             delay=delay,
             pause_on_success=pause_on_success
@@ -21,8 +21,8 @@ def bebas_puas_tiktok_yt():
     pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
     while True:
         if not purchase_loop(
-            family_code='8080ddcf-18c5-4d6d-86a4-89eb8ca5f2d1',
-            order=3,
+            family_code='5412b964-474e-42d3-9c86-f5692da627db',
+            order=212,
             use_decoy=True,
             delay=delay,
             pause_on_success=pause_on_success
@@ -34,8 +34,8 @@ def kuota_pelanggan_baru():
     pause_on_success = input("Aktifkan mode pause? (y/n): ").lower() == 'y'
     while True:
         if not purchase_loop(
-            family_code='0069ab97-3e54-41ef-87ea-807621d1922c',
-            order=1,
+            family_code='5412b964-474e-42d3-9c86-f5692da627db',
+            order=210,
             use_decoy=True,
             delay=delay,
             pause_on_success=pause_on_success
