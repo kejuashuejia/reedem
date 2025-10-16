@@ -45,7 +45,13 @@ def show_main_menu(packages, active_user):
     print("List Bot Auto Looping:")
     if packages:
         for i, pkg in enumerate(packages, start=3):
-            status_color = Fore.GREEN if pkg.get('status', 'Coid').lower() == 'good' else Fore.RED
+            status = pkg.get('status', 'Coid').lower()
+            if status == 'good':
+                status_color = Fore.GREEN
+            elif status == 'test':
+                status_color = Fore.YELLOW
+            else:
+                status_color = Fore.RED
             print(f"{i}. {pkg['name']} {status_color}({pkg.get('status', 'N/A')}){Style.RESET_ALL}")
     else:
         print(f"{Fore.YELLOW}Sorry Guys, belum nemu paket baru. Sabar ya!{Style.RESET_ALL}")
