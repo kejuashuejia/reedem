@@ -26,16 +26,20 @@ def clear_screen():
     print("")
     # Load notification from remote JSON; show only if present
     notif_url = "https://pastebin.com/raw/2UfYSacE"
-    notif = load_notification(notif_url)
-    text = notif.get('text')
-    color = notif.get('color')
-    if text:
-        if color:
-            style_code = getattr(Style, color.upper(), "")
-            reset_code = Style.RESET if style_code else ""
-            print(f"{style_code}{text.center(width)}{reset_code}")
-        else:
-            print(text.center(width))
+    notifications = load_notifications(notif_url)
+    for notif in notifications:
+        text = notif.get('text')
+        color = notif.get('color')
+        if text:
+            wrapped_text = textwrap.wrap(text, width=width)
+            if color:
+                style_code = getattr(Style, color.upper(), "")
+                reset_code = Style.RESET if style_code else ""
+                for line in wrapped_text:
+                    print(f"{style_code}{line.center(width)}{reset_code}")
+            else:
+                for line in wrapped_text:
+                    print(line.center(width))
     print("")
 
 def print_header(title):
@@ -104,28 +108,30 @@ def wrap_text(text, width=WIDTH):
         wrapped_lines.extend(textwrap.wrap(line, width=width))
     return '\n'.join(wrapped_lines)
 
-def load_notification(url):
-    """Fetch notification JSON from url and return dict {'text':..., 'color':...'}.
-    This function is tolerant to several shapes to allow language-specific text
-    using the 'prassa' key. It will prefer, in order:
-      - notifikasi.text (string)
-      - notifikasi.text.prassa
-      - notifikasi.prassa (string)
-      - notifikasi.prassa.text
-    If none found returns {'text': None, 'color': None}.
+def load_notifications(url):
+    """Fetch notification JSON from url and return a list of dicts.
+    It can handle a single notification object, a list of notification objects,
+    or multiple notification objects as separate keys in the JSON.
     """
-    def _find_notif_obj(data):
+    def _find_notif_objects(data):
         if not isinstance(data, dict):
-            return None
-        # direct key
-        notif = data.get('notifikasi')
-        if isinstance(notif, dict):
-            return notif
-        # tolerant match for keys starting with 'notifik'
-        for k, v in data.items():
-            if k.lower().startswith('notifik') and isinstance(v, dict):
-                return v
-        return None
+            return []
+
+        # Check for a primary 'notifikasi' key which could be a list or a dict
+        primary_notif = data.get('notifikasi')
+        if primary_notif:
+            if isinstance(primary_notif, list):
+                return primary_notif  # It's a list of notifs
+            if isinstance(primary_notif, dict):
+                return [primary_notif] # It's a single notif
+
+        # If no primary 'notifikasi' key, look for 'notifik...', etc.
+        notifs = []
+        for key, value in sorted(data.items()): # sort to get notif1, notif2 in order
+            if key.lower().startswith('notifik') and isinstance(value, dict):
+                notifs.append(value)
+        
+        return notifs
 
     def _extract_text_and_color(obj):
         if not isinstance(obj, dict):
@@ -154,16 +160,20 @@ def load_notification(url):
                 return pr.get('text'), pr.get('color') or obj.get('color')
         return None, obj.get('color')
 
+    notifications = []
     try:
         with urllib.request.urlopen(url, timeout=5) as resp:
             if getattr(resp, "status", 200) != 200:
-                return {'text': None, 'color': None}
+                return []
             body = resp.read().decode('utf-8')
             data = json.loads(body)
-            notif_obj = _find_notif_obj(data)
-            if notif_obj is None:
-                return {'text': None, 'color': None}
-            text, color = _extract_text_and_color(notif_obj)
-            return {'text': text, 'color': color}
+            
+            notif_objects = _find_notif_objects(data)
+
+            for obj in notif_objects:
+                text, color = _extract_text_and_color(obj)
+                if text:
+                    notifications.append({'text': text, 'color': color})
+            return notifications
     except Exception:
-        return {'text': None, 'color': None}
+        return []
