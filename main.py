@@ -15,6 +15,7 @@ from app.menus.loop import start_loop
 from app.menus.bot import run_edubot
 from app.util import get_api_key, save_api_key, PACKAGES_URL
 from colorama import Fore, Style, init
+import textwrap
 
 WIDTH = 55
 
@@ -52,7 +53,26 @@ def show_main_menu(packages, active_user):
                 status_color = Fore.YELLOW
             else:
                 status_color = Fore.RED
-            print(f"{i}. {pkg['name']} {status_color}({pkg.get('status', 'N/A')}){Style.RESET_ALL}")
+            
+            status_text = f"{status_color}({pkg.get('status', 'N/A')}){Style.RESET_ALL}"
+            prefix = f"{i}. "
+            
+            # The visible length of the status text
+            status_len = len(f"({pkg.get('status', 'N/A')})")
+            
+            # Available width for the name
+            name_width = WIDTH - len(prefix) - status_len - 1 # for space
+            
+            wrapped_name = textwrap.wrap(pkg['name'], width=name_width)
+            
+            # Print the first line with the status
+            if wrapped_name:
+                print(f"{prefix}{wrapped_name[0]} {status_text}")
+                # Print subsequent lines indented
+                for line in wrapped_name[1:]:
+                    print(f"{' ' * len(prefix)}{line}")
+            else: # Should not happen if name is not empty
+                print(f"{prefix} {status_text}")
     else:
         print(f"{Fore.YELLOW}Sorry Guys, belum nemu paket baru. Sabar ya!{Style.RESET_ALL}")
     

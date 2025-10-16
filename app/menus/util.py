@@ -79,3 +79,11 @@ def display_html(html_text, width=80):
     parser = HTMLToText(width=width)
     parser.feed(html_text)
     return parser.get_text()
+
+def wrap_text(text, width=WIDTH):
+    """Wraps text to the given width, preserving existing newlines."""
+    lines = text.split('\n')
+    wrapped_lines = []
+    for line in lines:
+        wrapped_lines.extend(textwrap.wrap(line, width=width))
+    return '\n'.join(wrapped_lines)

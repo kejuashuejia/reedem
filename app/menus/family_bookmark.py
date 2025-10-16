@@ -1,4 +1,4 @@
-from app.menus.util import clear_screen, pause
+from app.menus.util import clear_screen, pause, wrap_text
 from app.service.family_bookmark import FamilyBookmarkInstance
 from app.client.engsel import get_family
 from app.service.auth import AuthInstance
@@ -13,10 +13,10 @@ def show_family_bookmark_menu():
         
         bookmarks = FamilyBookmarkInstance.get_bookmarks()
         if not bookmarks:
-            print("Tidak ada bookmark family paket tersimpan.")
+            print(wrap_text("Tidak ada bookmark family paket tersimpan."))
         else:
             for idx, bm in enumerate(bookmarks):
-                print(f"{idx + 1}. {bm['name']} ({bm['family_code']}/{bm['order']})")
+                print(wrap_text(f"{idx + 1}. {bm['name']} ({bm['family_code']}/{bm['order']})"))
 
         print("\nMenu:")
         print("a. Tambah Bookmark")
@@ -25,7 +25,7 @@ def show_family_bookmark_menu():
         print("-------------------------------------------------------")
 
         if bookmarks:
-            print("Pilih bookmark untuk dibeli, atau pilih menu (a/d/0).")
+            print(wrap_text("Pilih bookmark untuk dibeli, atau pilih menu (a/d/0)."))
         
         choice = input("Pilihan Anda: ").strip().lower()
 
@@ -55,7 +55,7 @@ def show_family_bookmark_menu():
             pause()
         elif choice.isdigit() and bookmarks and 1 <= int(choice) <= len(bookmarks):
             selected_bm = bookmarks[int(choice) - 1]
-            print(f"Membeli paket: {selected_bm['name']}")
+            print(wrap_text(f"Membeli paket: {selected_bm['name']}"))
             
             use_decoy_str = input("Use decoy package? (y/n, default n): ").lower()
             use_decoy = use_decoy_str == 'y'

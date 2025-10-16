@@ -5,7 +5,7 @@ import select
 import requests
 from datetime import datetime
 
-from app.menus.util import clear_screen, print_header, Style, pause, format_quota
+from app.menus.util import clear_screen, print_header, Style, pause, format_quota, wrap_text
 from app.client.engsel import send_api_request, get_package
 from app.service.auth import AuthInstance
 from app.client.balance import settlement_balance
@@ -75,13 +75,13 @@ def _print_opening():
     clear_screen()
             
     print_header("🤖 BOT AUTO BUY BY QUOTA 🤖")
-    print(f"{Style.YELLOW}🥷 TOOL INI DIGUNAKAN UNTUK AUTO REBUY PAKET 🥷{Style.RESET}")
-    print(f"{Style.YELLOW}Cara pakai:{Style.RESET}")
-    print(f"{Style.YELLOW}1. Pilih paket yang kamu akan rebuy pada list paket kamu yang tersedia{Style.RESET}")
-    print(f"{Style.YELLOW}2. Set sisa Quota Minimum untuk Auto Rebuy{Style.RESET}")
+    print(wrap_text(f"{Style.YELLOW}🥷 TOOL INI DIGUNAKAN UNTUK AUTO REBUY PAKET 🥷{Style.RESET}"))
+    print(wrap_text(f"{Style.YELLOW}Cara pakai:{Style.RESET}"))
+    print(wrap_text(f"{Style.YELLOW}1. Pilih paket yang kamu akan rebuy pada list paket kamu yang tersedia{Style.RESET}"))
+    print(wrap_text(f"{Style.YELLOW}2. Set sisa Quota Minimum untuk Auto Rebuy{Style.RESET}"))
     print(f"{'-'*55}")                   
-    print(f"{Style.GREEN}Gunakan secara bijak!{Style.RESET}")
-    print(f"{Style.YELLOW}Gunakan via Termux atau install di STB kamu. bot tetap aktif selama tidak dihapus dari background{Style.RESET}")
+    print(wrap_text(f"{Style.GREEN}Gunakan secara bijak!{Style.RESET}"))
+    print(wrap_text(f"{Style.YELLOW}Gunakan via Termux atau install di STB kamu. bot tetap aktif selama tidak dihapus dari background{Style.RESET}"))
     print(f"{'-'*55}")
                                  
     quote = "🙏 Kenapa mata kamu kayak Google? Karena semua yang aku cari ada di situ.💓 "
@@ -120,13 +120,13 @@ def run_edubot():
     clear_screen()
     print_header("📦 Daftar Paket Saya")
     for pkg in packages:
-        print(f"{Style.CYAN}[{pkg['index']}] {Style.RESET}{pkg['name']} (Quota Code: {pkg['quota_code']})")
+        print(wrap_text(f"{Style.CYAN}[{pkg['index']}] {Style.RESET}{pkg['name']} (Quota Code: {pkg['quota_code']})"))
                                                      
         for benefit in pkg["benefits"]:
             if benefit["data_type"] == "DATA":
                 remaining_str = format_quota(benefit["remaining"])
                 total_str = format_quota(benefit["total"])
-                print(f"   - {Style.YELLOW}{benefit['name']}{Style.RESET}: {remaining_str} / {total_str}")
+                print(wrap_text(f"   - {Style.YELLOW}{benefit['name']}{Style.RESET}: {remaining_str} / {total_str}"))
         print("-"*55)
     print(f"{Style.CYAN}[99]{Style.RESET} Keluar ke menu utama")
     choice = input("Pilih nomor paket untuk dipantau > ").strip()
@@ -166,10 +166,10 @@ def run_edubot():
     }]
 
                                                                           
-    print("\nMemulai pemantauan paket '{0}'.".format(option_name))
-    print("Bot akan memeriksa sisa kuota secara berkala dan melakukan pembelian ulang otomatis ketika sisa kuota di bawah ambang minimal yang Anda tetapkan.")
-    print("Anda dapat menentukan minimum kuota (dalam GB) sebelum auto-purchase dilakukan.")
-    print("Masukkan '99' kemudian tekan Enter kapan saja untuk keluar.\n")
+    print(wrap_text("\nMemulai pemantauan paket '{0}'.".format(option_name)))
+    print(wrap_text("Bot akan memeriksa sisa kuota secara berkala dan melakukan pembelian ulang otomatis ketika sisa kuota di bawah ambang minimal yang Anda tetapkan."))
+    print(wrap_text("Anda dapat menentukan minimum kuota (dalam GB) sebelum auto-purchase dilakukan."))
+    print(wrap_text("Masukkan '99' kemudian tekan Enter kapan saja untuk keluar.\n"))
                                                                                 
     min_quota_gb = 1.0
     user_input_quota = input("Masukkan minimum kuota (GB) sebelum auto-buy [default 1] > ").strip()

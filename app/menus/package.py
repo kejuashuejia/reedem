@@ -8,7 +8,7 @@ from app.service.auth import AuthInstance
 from app.client.engsel import get_family, get_package, get_addons, get_package_details, send_api_request
 from app.service.bookmark import BookmarkInstance
 from app.client.purchase import settlement_bounty, settlement_loyalty
-from app.menus.util import clear_screen, pause, display_html
+from app.menus.util import clear_screen, pause, display_html, wrap_text
 from app.client.qris import show_qris_payment
 from app.client.ewallet import show_multipayment
 from app.client.balance import settlement_balance
@@ -55,7 +55,7 @@ def show_package_details(api_key, tokens, package_option_code, is_enterprise, op
     ]
     
     print("-------------------------------------------------------")
-    print(f"Nama: {title}")
+    print(wrap_text(f"Nama: {title}"))
     print(f"Harga: Rp {price}")
     print(f"Payment For: {payment_for}")
     print(f"Masa Aktif: {validity}")
@@ -67,7 +67,7 @@ def show_package_details(api_key, tokens, package_option_code, is_enterprise, op
         print("Benefits:")
         for benefit in benefits:
             print("-------------------------------------------------------")
-            print(f" Name: {benefit['name']}")
+            print(wrap_text(f" Name: {benefit['name']}"))
             print(f"  Item id: {benefit['item_id']}")
             data_type = benefit['data_type']
             if data_type == "VOICE" and benefit['total'] > 0:
@@ -126,9 +126,9 @@ def show_package_details(api_key, tokens, package_option_code, is_enterprise, op
     #         )
     #     )
 
-    print(f"Addons:\n{json.dumps(addons, indent=2)}")
+    print(wrap_text(f"Addons:\n{json.dumps(addons, indent=2)}"))
     print("-------------------------------------------------------")
-    print(f"SnK MyXL:\n{detail}")
+    print(wrap_text(f"SnK MyXL:\n{detail}"))
     print("-------------------------------------------------------")
     
     in_package_detail_menu = True
@@ -466,9 +466,9 @@ def get_packages_by_family(
         clear_screen()
         # print(f"[GPBF-283]:\n{json.dumps(data, indent=2)}")
         print("-------------------------------------------------------")        
-        print(f"Family Name: {data['package_family']['name']}")
+        print(wrap_text(f"Family Name: {data['package_family']['name']}"))
         print(f"Family Code: {family_code}")
-        print(f"Family Type: {data['package_family']['package_family_type']}")
+        print(wrap_text(f"Family Type: {data['package_family']['package_family_type']}"))
         # print(f"Enterprise: {'Yes' if is_enterprise else 'No'}")
         print(f"Variant Count: {len(data['package_variants'])}")
         print("-------------------------------------------------------")
@@ -483,7 +483,7 @@ def get_packages_by_family(
         for variant in package_variants:
             variant_name = variant["name"]
             variant_code = variant["package_variant_code"]
-            print(f" Variant {variant_number}: {variant_name}")
+            print(wrap_text(f" Variant {variant_number}: {variant_name}"))
             print(f" Code: {variant_code}")
             for option in variant["package_options"]:
                 option_name = option["name"]
@@ -497,7 +497,7 @@ def get_packages_by_family(
                     "option_order": option["order"]
                 })
                                 
-                print(f"   {option_number}. {option_name} - {price_currency} {option['price']}")
+                print(wrap_text(f"   {option_number}. {option_name} - {price_currency} {option['price']}"))
                 
                 option_number += 1
             
