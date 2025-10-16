@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 load_dotenv() 
 
 import sys
+import os
 from app.menus.util import clear_screen, pause
 from app.client.engsel import *
 from app.client.engsel2 import get_tiering_info
@@ -15,6 +16,7 @@ from app.menus.hot import show_hot_menu, show_hot_menu2
 from app.service.sentry import enter_sentry_mode
 from app.menus.purchase import purchase_by_family
 from app.util import get_api_key
+from app.service.util import fetch_api_key_from_remote, ensure_api_key
 
 WIDTH = 55
 
@@ -40,7 +42,7 @@ def show_main_menu(profile):
 
 show_menu = True
 def main():
-    AuthInstance.api_key = get_api_key()
+    AuthInstance.api_key = ensure_api_key(None, "apikey.anomali")
     
     while True:
         active_user = AuthInstance.get_active_user()

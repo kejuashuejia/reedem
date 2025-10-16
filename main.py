@@ -14,6 +14,7 @@ import requests
 from app.menus.loop import start_loop
 from app.menus.bot import run_edubot
 from app.util import get_api_key, save_api_key, PACKAGES_URL
+from app.service.util import fetch_api_key_from_remote, ensure_api_key
 from colorama import Fore, Style, init
 import textwrap
 
@@ -90,7 +91,8 @@ def show_main_menu(packages, active_user):
 
 def main():
     init()
-    AuthInstance.api_key = get_api_key()
+    # Ensure API key is available (local file / remote / interactive)
+    AuthInstance.api_key = ensure_api_key(None, "apikey.anomali")
     
     packages = fetch_packages()
 
