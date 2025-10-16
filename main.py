@@ -19,6 +19,85 @@ import textwrap
 
 WIDTH = 55
 
+RUNNING_TEXT_URL = "https://pastebin.com/raw/2UfYSacE"
+
+
+def fetch_running_text():
+    """Fetch running text JSON from configured URL.
+
+    Returns the parsed JSON (dict) or None on error.
+    """
+    try:
+        resp = requests.get(RUNNING_TEXT_URL, timeout=5)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception:
+        return None
+
+
+def render_marquee_frame(text, width):
+    # Simple first frame: right-aligned (start from right)
+    if not text:
+        return ' ' * width
+    padded = (' ' * width) + text
+    return padded[:width]
+
+
+def animate_marquee(text, width, stop_event, lines_up, color_code=''):
+    """Animate marquee moving right-to-left.
+
+    The function moves the cursor up `lines_up` lines from the current cursor
+    position, writes the marquee line, then restores the cursor so the input
+    prompt isn't disturbed.
+    """
+    # Build the scrolling buffer: spaces to start, the text, and some spaces to separate loops
+    sep = ' ' * 8
+    buffer = (' ' * width) + text + sep
+    total = len(buffer)
+    try:
+        idx = 0
+        while not stop_event.is_set():
+            if idx >= total:
+                idx = 0
+            frame = buffer[idx: idx + width]
+            if len(frame) < width:
+                frame = frame.ljust(width)
+
+            # Save cursor, move up, write, restore cursor
+            # Move up `lines_up` lines then to column 1
+            seq = f"\x1b[s\x1b[{lines_up}A{color_code}{frame}{Style.RESET_ALL}\x1b[u"
+            print(seq, end='', flush=True)
+
+            idx += 1
+            stop_event.wait(0.08)
+    except Exception:
+        # Fail silently; animation is non-critical
+        return
+
+
+def input_with_marquee(prompt, running_text, width, lines_after_marquee):
+    """Display input prompt while animating marquee in background.
+
+    Returns the user input string.
+    """
+    if not running_text:
+        return input(prompt)
+
+    rt = running_text.get('running_text') or running_text
+    text = rt.get('text', '')
+    color = rt.get('color', '').upper()
+    color_code = getattr(Fore, color, '')
+
+    stop_event = __import__('threading').Event()
+    t = __import__('threading').Thread(target=animate_marquee, args=(text, width, stop_event, lines_after_marquee, color_code))
+    t.daemon = True
+    t.start()
+    try:
+        return input(prompt)
+    finally:
+        stop_event.set()
+        t.join(timeout=0.2)
+
 def fetch_packages():
     try:
         response = requests.get(PACKAGES_URL, timeout=10)
@@ -32,9 +111,28 @@ def fetch_packages():
         return []
 
 def show_main_menu(packages, active_user):
+    # placeholder for compatibility if running_text not provided
+    show_main_menu_inner(packages, active_user, None)
+    return
+
+
+def show_main_menu_inner(packages, active_user, running_text):
     clear_screen()
     print("Menu Utama".center(WIDTH))
     print("=" * WIDTH)
+    # Render running text directly under the header, separated by a spacer line
+    if running_text and isinstance(running_text, dict):
+        rt = running_text.get('running_text') or running_text
+        text = rt.get('text', '')
+        color = rt.get('color', '').upper()
+        color_code = getattr(Fore, color, '')
+        # Spacer line made of spaces to visually separate header and marquee
+        spacer = ' ' * WIDTH
+        print(spacer)
+        # Print initial marquee line (will be updated by animator)
+        marquee_line = render_marquee_frame(text, WIDTH)
+        print(f"{color_code}{marquee_line}{Style.RESET_ALL}")
+        print(spacer)
     if active_user and 'number' in active_user:
         print(f"Nomor Aktif: {Fore.YELLOW}{active_user['number']}{Style.RESET_ALL}")
         print("=" * WIDTH)
@@ -79,6 +177,27 @@ def show_main_menu(packages, active_user):
     custom_mode_number = len(packages) + 3 if packages else 3
     print(f"{custom_mode_number}. Mode Custom (family code dan nomer order)")
     print("-------------------------------------------------------")
+    # Compute lines after the marquee so animator can move cursor up correctly.
+    # We printed spacer (1), marquee (1), spacer (1) right after the header.
+    # Now count how many lines will be printed until the input prompt.
+    lines_after_marquee = 0
+
+    # Lines from the rest of menu that appear after the marquee spacer
+    # Fixed lines after marquee: the separator line, 'Menu:' label and base options
+    fixed_lines = 8
+    lines_after_marquee += fixed_lines
+
+    # Approximate package lines: each package shown as 1-2 lines; use 2 to be safe
+    if packages:
+        lines_after_marquee += len(packages) * 2
+    else:
+        lines_after_marquee += 1
+
+    # plus the header and top separators we printed earlier (so animator moves up to marquee)
+    # we want to move up from prompt to the marquee's printed line: include the spacer and marquee and spacer
+    lines_after_marquee += 3
+
+    return lines_after_marquee
     bookmark_menu_number = custom_mode_number + 1
     edubot_menu_number = custom_mode_number + 2
     print(f"{bookmark_menu_number}. Bookmark Family Code")
@@ -92,14 +211,22 @@ def main():
     AuthInstance.api_key = get_api_key()
     
     packages = fetch_packages()
+    running_text = None
+    try:
+        running_text = fetch_running_text()
+    except Exception:
+        # Non-fatal: keep running without running text
+        running_text = None
 
     while True:
         active_user = AuthInstance.get_active_user()
 
         if active_user is not None:
-            show_main_menu(packages, active_user)
+            # show menu with running text and get how many lines are after marquee
+            lines_after_marquee = show_main_menu_inner(packages, active_user, running_text)
 
-            choice = input("Pilih menu: ")
+            # Prompt while animating marquee if available
+            choice = input_with_marquee("Pilih menu: ", running_text, WIDTH, lines_after_marquee)
             
             # Static choices
             if choice == "0":
