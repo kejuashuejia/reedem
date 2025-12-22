@@ -3,6 +3,7 @@ from app.service.auth import AuthInstance
 from app.menus.util import clear_screen, pause
 from app.service.bookmark import BookmarkInstance
 from app.client.engsel import get_family
+from app.colors import bcolors
 
 def show_bookmark_menu():
     api_key = AuthInstance.api_key
@@ -11,9 +12,9 @@ def show_bookmark_menu():
     in_bookmark_menu = True
     while in_bookmark_menu:
         clear_screen()
-        print("-------------------------------------------------------")
-        print("Bookmark Paket")
-        print("-------------------------------------------------------")
+        print(f"{bcolors.HEADER}-------------------------------------------------------{bcolors.ENDC}")
+        print(f"{bcolors.BOLD}Bookmark Paket{bcolors.ENDC}")
+        print(f"{bcolors.HEADER}-------------------------------------------------------{bcolors.ENDC}")
         bookmarks = BookmarkInstance.get_bookmarks()
         if not bookmarks or len(bookmarks) == 0:
             print("Tidak ada bookmark tersimpan.")
@@ -23,9 +24,9 @@ def show_bookmark_menu():
         for idx, bm in enumerate(bookmarks):
             print(f"{idx + 1}. {bm['family_name']} - {bm['variant_name']} - {bm['option_name']}")
         
-        print("00. Kembali ke menu utama")
-        print("000. Hapus Bookmark")
-        print("-------------------------------------------------------")
+        print(f"00. {bcolors.OKCYAN}Kembali ke menu utama{bcolors.ENDC}")
+        print(f"000. {bcolors.FAIL}Hapus Bookmark{bcolors.ENDC}")
+        print(f"{bcolors.HEADER}-------------------------------------------------------{bcolors.ENDC}")
         choice = input("Pilih bookmark (nomor): ")
         if choice == "00":
             in_bookmark_menu = False
@@ -41,7 +42,7 @@ def show_bookmark_menu():
                     del_bm["order"],
                 )
             else:
-                print("Input tidak valid. Silahkan coba lagi.")
+                print(f"{bcolors.FAIL}Input tidak valid. Silahkan coba lagi.{bcolors.ENDC}")
                 pause()
             continue
         if choice.isdigit() and 1 <= int(choice) <= len(bookmarks):
@@ -51,7 +52,7 @@ def show_bookmark_menu():
             
             family_data = get_family(api_key, tokens, family_code, is_enterprise)
             if not family_data:
-                print("Gagal mengambil data family.")
+                print(f"{bcolors.FAIL}Gagal mengambil data family.{bcolors.ENDC}")
                 pause()
                 continue
             
@@ -73,6 +74,6 @@ def show_bookmark_menu():
                 show_package_details(api_key, tokens, option_code, is_enterprise)            
             
         else:
-            print("Input tidak valid. Silahkan coba lagi.")
+            print(f"{bcolors.FAIL}Input tidak valid. Silahkan coba lagi.{bcolors.ENDC}")
             pause()
             continue

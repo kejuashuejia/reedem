@@ -2,6 +2,8 @@ import os
 import hashlib
 import requests
 import base64
+import json
+import time
 
 from random import randint
 from datetime import datetime, timezone, timedelta
@@ -10,28 +12,33 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from dataclasses import dataclass
 
-API_KEY = os.getenv("API_KEY")
-AES_KEY_ASCII = os.getenv("AES_KEY_ASCII")
-AX_FP_KEY = os.getenv("AX_FP_KEY")
+from app.service.crypto_helper import (
+    encrypt_xdata,
+    make_x_signature,
+    make_x_signature_payment,
+    make_ax_api_signature,
+    make_x_signature_bounty,
+    make_x_signature_loyalty,
+    make_x_signature_bounty_allotment,
+)
 
-BASE_CRYPTO_URL = "https://xlc.gemail.ink"
+from app.service.crypto_helper import decrypt_xdata as dec_xdata
+from app.service.crypto_helper import encrypt_circle_msisdn as encrypt_msisdn
+from app.service.crypto_helper import decrypt_circle_msisdn as decrypt_msisdn
 
-XDATA_DECRYPT_URL = f"{BASE_CRYPTO_URL}/xdatadec"
-XDATA_ENCRYPT_SIGN_URL = f"{BASE_CRYPTO_URL}/xdataenc"
-PAYMENT_SIGN_URL = f"{BASE_CRYPTO_URL}/paysign"
-BOUNTY_SIGN_URL = f"{BASE_CRYPTO_URL}/bountysign"
-LOYALTY_SIGN_URL = f"{BASE_CRYPTO_URL}/rolaysign"
-AX_SIGN_URL = f"{BASE_CRYPTO_URL}/ax_sign"
-
+API_KEY = "vT8tINqHaOxXbGE7eOWAhA=="
+AES_KEY_ASCII = ""
+AX_FP_KEY = "18b4d589826af50241177961590e6693"
+ENCRYPTED_FIELD_KEY="5dccbf08920a5527"
 @dataclass
 class DeviceInfo:
     manufacturer: str
     model: str
     lang: str
     resolution: str       # "WxH"
-    tz_short: str         # contoh log kamu: "GMT07:00" (tanpa tanda +)
+    tz_short: str         # "GMT07:00"
     ip: str
-    font_scale: float     # 1.0 dsb
+    font_scale: float     # 1.0
     android_release: str  # "13"
     msisdn: str
     
@@ -58,16 +65,17 @@ def load_ax_fp() -> str:
     
     # Generate new if not found/empty
     dev = DeviceInfo(
-        manufacturer="samsung",
-        model="SM-N93" + str(randint(1000, 9999)),  # biar beda2
+        manufacturer="samsung" + str(randint(1000, 9999)),
+        model="SM-N93" + str(randint(1000, 9999)),
         lang="en",
         resolution="720x1540",
         tz_short="GMT07:00",
-        ip="192.168.0.55",
+        ip="192.169.69.69",
         font_scale=1.0,
         android_release="13",
-        msisdn="6287863683554",
+        msisdn="6281398370564"
     )
+    
     new_fp = ax_fingerprint(dev, AX_FP_KEY)
     with open(fp_path, "w", encoding="utf-8") as f:
         f.write(new_fp)
@@ -83,7 +91,7 @@ def b64(data: bytes, urlsafe: bool) -> str:
 
 
 def build_encrypted_field(iv_hex16: str | None = None, urlsafe_b64: bool = False) -> str:
-    key = AES_KEY_ASCII.encode("ascii")
+    key = ENCRYPTED_FIELD_KEY.encode("ascii")
     iv_hex = iv_hex16 or random_iv_hex16()
     iv = iv_hex.encode("ascii") 
 
@@ -113,25 +121,7 @@ def ax_api_signature(
         code: str,
         contact_type: str
     ) -> str:
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-key": api_key,
-    }
-    
-    request_body = {
-        "ts_for_sign": ts_for_sign,
-        "contact": contact,
-        "code": code,
-        "contact_type": contact_type
-    }
-    
-    response = requests.request("POST", AX_SIGN_URL, json=request_body, headers=headers, timeout=30)
-    if response.status_code == 200:
-        return response.json().get("ax_signature")
-    elif response.status_code == 402:
-        raise Exception("Insufficient API credit.")
-    else:
-        raise Exception(f"Signature generation failed: {response.text}")
+    return make_ax_api_signature(ts_for_sign, contact, code, contact_type)
     
 def encryptsign_xdata(
         api_key: str,
@@ -139,27 +129,19 @@ def encryptsign_xdata(
         path: str,
         id_token: str,
         payload: dict
-    ) -> str:
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-key": api_key,
-    }
+) -> str:
+    plain_body = json.dumps(payload, separators=(",", ":"))
     
-    request_body = {
-        "id_token": id_token,
-        "method": method,
-        "path": path,
-        "body": payload
-    }
+    xtime = int(time.time() * 1000)
+    xdata = encrypt_xdata(plain_body, xtime)
 
-    response = requests.request("POST", XDATA_ENCRYPT_SIGN_URL, json=request_body, headers=headers, timeout=30)
-    
-    if response.status_code == 200:
-        return response.json()
-    elif response.status_code == 402:
-        raise Exception("Insufficient API credit.")
-    else:
-        raise Exception(f"Encryption failed: {response.text}")
+    sig_time_sec = xtime // 1000
+    x_sig = make_x_signature(
+        id_token, method, path, sig_time_sec
+    )
+
+    return {"x_signature": x_sig, "encrypted_body": {"xdata": xdata, "xtime": xtime}}
+
     
 def decrypt_xdata(
     api_key: str,
@@ -168,19 +150,9 @@ def decrypt_xdata(
     if not isinstance(encrypted_payload, dict) or "xdata" not in encrypted_payload or "xtime" not in encrypted_payload:
         raise ValueError("Invalid encrypted data format. Expected a dictionary with 'xdata' and 'xtime' keys.")
     
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-key": api_key,
-    }
-    
-    response = requests.request("POST", XDATA_DECRYPT_URL, json=encrypted_payload, headers=headers, timeout=30)
-    
-    if response.status_code == 200:
-        return response.json().get("plaintext")
-    elif response.status_code == 402:
-        raise Exception("Insufficient API credit.")
-    else:
-        raise Exception(f"Decryption failed: {response.text}")
+    plaintext = dec_xdata(encrypted_payload["xdata"], int(encrypted_payload["xtime"]))
+
+    return json.loads(plaintext)
 
 def get_x_signature_payment(
         api_key: str,
@@ -192,29 +164,16 @@ def get_x_signature_payment(
         payment_for: str,
         path: str,
     ) -> str:
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-key": api_key,
-    }
     
-    request_body = {
-        "access_token": access_token,
-        "sig_time_sec": sig_time_sec,
-        "package_code": package_code,
-        "token_payment": token_payment,
-        "payment_method": payment_method,
-        "payment_for": payment_for,
-        "path": path,
-    }
-    
-    response = requests.request("POST", PAYMENT_SIGN_URL, json=request_body, headers=headers, timeout=30)
-    
-    if response.status_code == 200:
-        return response.json().get("x_signature")
-    elif response.status_code == 402:
-        raise Exception("Insufficient API credit.")
-    else:
-        raise Exception(f"Signature generation failed: {response.text}")
+    return make_x_signature_payment(
+        access_token,
+        sig_time_sec,
+        package_code,
+        token_payment,
+        payment_method,
+        payment_for,
+        path,
+    )
     
 def get_x_signature_bounty(
         api_key: str,
@@ -223,25 +182,28 @@ def get_x_signature_bounty(
         package_code: str,
         token_payment: str
     ) -> str:
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-key": api_key,
-    }
-    
-    request_body = {
-        "access_token": access_token,
-        "sig_time_sec": sig_time_sec,
-        "package_code": package_code,
-        "token_payment": token_payment
-    }
-    
-    response = requests.request("POST", BOUNTY_SIGN_URL, json=request_body, headers=headers, timeout=30)
-    if response.status_code == 200:
-        return response.json().get("x_signature")
-    elif response.status_code == 402:
-        raise Exception("Insufficient API credit.")
-    else:
-        raise Exception(f"Signature generation failed: {response.text}")
+    return make_x_signature_bounty(
+        access_token,
+        sig_time_sec,
+        package_code,
+        token_payment,
+    )
+
+def get_x_signature_bounty_allotment(
+        api_key: str,
+        sig_time_sec: int,
+        package_code: str,
+        token_confirmation: str,
+        destination_msisdn: str,
+        path: str
+    ) -> str:
+    return make_x_signature_bounty_allotment(
+        sig_time_sec,
+        package_code,
+        token_confirmation,
+        path,
+        destination_msisdn,
+    )
 
 def ax_device_id() -> str:
     android_id = load_ax_fp() # Actually just b*llsh*tting
@@ -254,22 +216,21 @@ def get_x_signature_loyalty(
         token_confirmation: str,
         path: str
     ) -> str:
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-key": api_key,
-    }
+    return make_x_signature_loyalty(
+        sig_time_sec,
+        package_code,
+        token_confirmation,
+        path,
+    )
     
-    request_body = {
-        "sig_time_sec": sig_time_sec,
-        "package_code": package_code,
-        "token_confirmation": token_confirmation,
-        "path": path
-    }
-    
-    response = requests.request("POST", LOYALTY_SIGN_URL, json=request_body, headers=headers, timeout=30)
-    if response.status_code == 200:
-        return response.json().get("x_signature")
-    elif response.status_code == 402:
-        raise Exception("Insufficient API credit.")
-    else:
-        raise Exception(f"Signature generation failed: {response.text}")
+def encrypt_circle_msisdn(
+        api_key: str,
+        msisdn: str
+    ) -> str:
+    return encrypt_msisdn(msisdn)
+
+def decrypt_circle_msisdn(
+        api_key: str,
+        encrypted_msisdn_b64: str
+    ) -> str:
+    return decrypt_msisdn(encrypted_msisdn_b64)

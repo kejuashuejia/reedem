@@ -1,16 +1,17 @@
 from datetime import datetime, timedelta
 
-from app.client.engsel2 import get_pending_transaction, get_transaction_history
+from app.client.engsel import get_transaction_history
 from app.menus.util import clear_screen
+from app.colors import bcolors
 
 def show_transaction_history(api_key, tokens):
     in_transaction_menu = True
 
     while in_transaction_menu:
         clear_screen()
-        print("-------------------------------------------------------")
-        print("Riwayat Transaksi")
-        print("-------------------------------------------------------")
+        print(f"{bcolors.HEADER}-------------------------------------------------------{bcolors.ENDC}")
+        print(f"{bcolors.BOLD}Riwayat Transaksi{bcolors.ENDC}")
+        print(f"{bcolors.HEADER}-------------------------------------------------------{bcolors.ENDC}")
 
         data = None
         history = []
@@ -18,7 +19,7 @@ def show_transaction_history(api_key, tokens):
             data = get_transaction_history(api_key, tokens)
             history = data.get("list", [])
         except Exception as e:
-            print(f"Gagal mengambil riwayat transaksi: {e}")
+            print(f"{bcolors.FAIL}Gagal mengambil riwayat transaksi: {e}{bcolors.ENDC}")
             history = []
         
         if len(history) == 0:
@@ -31,7 +32,7 @@ def show_transaction_history(api_key, tokens):
 
             formatted_time = dt_jakarta.strftime("%d %B %Y | %H:%M WIB")
 
-            print(f"{idx}. {transaction['title']} - {transaction['price']}")
+            print(f"{idx}. {bcolors.OKGREEN}{transaction['title']}{bcolors.ENDC} - {transaction['price']}")
             print(f"   Tanggal: {formatted_time}")
             print(f"   Metode Pembayaran: {transaction['payment_method_label']}")
             print(f"   Status Transaksi: {transaction['status']}")
@@ -40,11 +41,11 @@ def show_transaction_history(api_key, tokens):
 
         # Option
         print("0. Refresh")
-        print("00. Kembali ke Menu Utama")
+        print(f"00. {bcolors.OKCYAN}Kembali ke Menu Utama{bcolors.ENDC}")
         choice = input("Pilih opsi: ")
         if choice == "0":
             continue
         elif choice == "00":
             in_transaction_menu = False
         else:
-            print("Opsi tidak valid. Silakan coba lagi.")
+            print(f"{bcolors.FAIL}Opsi tidak valid. Silakan coba lagi.{bcolors.ENDC}")
