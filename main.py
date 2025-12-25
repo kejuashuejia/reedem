@@ -25,6 +25,7 @@ from app.menus.notification import show_notification_menu
 from app.menus.store.segments import show_store_segments_menu
 from app.menus.store.search import show_family_list_menu, show_store_packages_menu
 from app.menus.store.redeemables import show_redeemables_menu
+from app.menus.bot import run_edubot
 from app.client.registration import dukcapil
 from app.menus.util import format_quota_byte
 
@@ -115,6 +116,7 @@ def show_main_menu(profile, total_remaining_quota, total_quota, is_unlimited):
     print("16. Custom loops Redeem BP")
     print("17. Redeem by Target Quota")
     print(f"{bcolors.OKCYAN}{'-' * WIDTH}{bcolors.ENDC}")
+    print("B. bot auto Renew Packet")
     print("R. Register")
     print("N. Notifikasi")
     print("V. Validate msisdn")
@@ -592,6 +594,8 @@ def main():
                 except KeyboardInterrupt:
                     print(f"\n{bcolors.WARNING}Bot stopped by user.{bcolors.ENDC}")
                     pause()
+            elif choice.lower() == "b":
+                run_edubot()
             elif choice == "00":
                 show_bookmark_menu()
             elif choice == "99":

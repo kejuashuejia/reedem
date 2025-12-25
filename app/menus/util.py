@@ -2,6 +2,18 @@ from html.parser import HTMLParser
 import os
 import re
 import textwrap
+from app.colors import bcolors as Style
+
+def print_header(text, width=55):
+    """Prints a centered header."""
+    print(f"{Style.HEADER}{text.center(width)}{Style.ENDC}")
+
+def format_quota(quota_byte: int) -> str:
+    return format_quota_byte(quota_byte)
+
+def wrap_text(text, width=55):
+    """Wraps text to the given width."""
+    return textwrap.fill(text, width=width)
 
 def clear_screen():
     print("Clearing screen...")
